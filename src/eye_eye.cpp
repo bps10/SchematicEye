@@ -304,7 +304,9 @@ float Eye::GetVitreousLen(std::string model)
 
 float Eye::DegreesToMM(float object_distance, float degrees)
 {
-    return abs(object_distance / tan(degrees));
+    float radians;
+    radians = degrees * PI / 180;
+    return abs(object_distance * tan(radians));
 }
 
 
@@ -315,7 +317,7 @@ float Eye::FindOpticalPower(int opt = 1)
     if (opt == 1) { focal_len = focus.get_best_focus()[0][2]; }
     if (opt == 2) { focal_len = GetAxialLength(model, age, diopters); }
     
-    power = 1.0/(focal_len / 1000.0);
+    power = 1.0 / (focal_len / 1000.0);
     return power;
 }
 

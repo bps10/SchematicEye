@@ -8,18 +8,22 @@
 int main(int argc, const char * argv[])
 {
     int option (0);
+    float object_distance = 10000;
+    float offaxis = 5;
     
     for (int i = 1; i < argc; i++) {
         
-        if (i == 1) 
-        {
-            std::string word = argv[1];
+        std::string word = argv[1];
 
-            if (word == "plot") {option = 0;}
-            if (word == "loop") {option = 1;} 
-            if (word == "series") {option = 2;}
-                        
-        }
+        if (word == "plot") {option = 0;}
+        if (word == "loop") {option = 1;} 
+        if (word == "series") {option = 2;}       
+
+        if (word.substr(0, 8) == "distance") 
+            { object_distance = ::atof(word.substr(9).c_str()); }
+        if (word.substr(0, 7) == "offaxis") 
+            { offaxis = ::atof(word.substr(8).c_str()); }
+
         // add in model change param (i.e. Navarro vs Dubbelman) and age option for loop.
         if (i == 2 && option == 0)
         {
@@ -30,11 +34,7 @@ int main(int argc, const char * argv[])
             else 
                 {std::cout << "sorry model option not understood" << std::endl;}
         }
-        //else {std::cout << "model cannot be changed with loop option" << std::endl;}
-        
-        //else if (i == 2 && option == 1)
-        //    std::string word = argv[2];
-        //    if (argv[i] == "
+
         if (i > 2) {std::cout << "sorry additional options not understood" << std::endl;}
     }
     
@@ -43,8 +43,8 @@ int main(int argc, const char * argv[])
     Eye::Eye     eye;
     eye.set_params(option, "dubbelman");
     eye.SchematicEye();
-    eye.EyeTracer(10000, 5);
-    eye.EyePlots(1, 10000, 5); 
+    eye.EyeTracer(object_distance, offaxis);
+    eye.EyePlots(1, object_distance, offaxis); 
     eye.Diopters(0);
     }
     
@@ -70,7 +70,7 @@ int main(int argc, const char * argv[])
                 Eye::Eye     eye;
                 eye.set_params( LensAccomm, PupilSize, mod = "dubbelman", AGE );
                 eye.SchematicEye();
-                eye.EyeTracer(10000, 5);
+                eye.EyeTracer(object_distance, offaxis);
                 
                 AccommOptPower = eye.FindOpticalPower(1);
                 RelaxedOptPower = eye.FindOpticalPower(2);
@@ -93,8 +93,8 @@ int main(int argc, const char * argv[])
     
     Eye::Eye        eye;
     eye.set_params(option, "dubbelman");
-    eye.EyePlots(2, 10000, 5);
-    eye.Intensity(1, 10000, 5);
+    eye.EyePlots(2, object_distance, offaxis);
+    eye.Intensity(1, object_distance, offaxis);
     }
     
     

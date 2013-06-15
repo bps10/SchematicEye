@@ -44,6 +44,7 @@
 #include <Goptical/Io/RendererSvg>
 #include <Goptical/Io/Rgb>
 
+#define PI 4.0 * atan(1.0)
 
 using namespace Goptical;
 
@@ -52,6 +53,7 @@ class Eye  {
 private:    
     float diopters, pupil_size, age, init_diop;
     int print;
+
     std::string  model;
     
     Sys::System * sys;
