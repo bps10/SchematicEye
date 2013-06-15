@@ -85,19 +85,24 @@ public:
 
     Eye();
     ~Eye();
-    void set_params(int option, std::string mod);
+    void set_params(std::string mod);
     void set_params(float diop, float pup, std::string mod, float a);
     void SchematicEye( );
     void EyeTracer(float object_distance, float offaxis);
+
     void Intensity(int option, float object_distance, float off_axis);
     void EyePlots(int option, float object_distance, float off_axis);
     void SpotPlot(int option, float object_distance, float off_axis);
+    void SimplePlot(float object_distance, float off_axis );
+    void LSAanalysis(int option, float object_distance, float off_axis,
+            std::string model);
     
     float GetCornealThickness(std::string model);
     float GetAnteriorChamber(std::string model, float age, float diopters);
     float GetLensThickness(std::string model, float age, float diopters);
     float GetAxialLength(std::string model, float age, float diopters);
     float GetVitreousLen(std::string model);
+
     float DegreesToMM(float object_distance, float degrees);
     float FindOpticalPower(int opt);
     float Diopters(int option);

@@ -225,3 +225,51 @@ void Eye::SpotPlot(int option = 1, float object_distance=10000,
         }    
     }
 }
+
+void Eye::SimplePlot(float object_distance, float off_axis)
+{
+    set_params("dubbelman");
+    SchematicEye();
+    EyeTracer(object_distance, off_axis);
+    EyePlots(1, object_distance, off_axis); 
+    Diopters(0);
+
+}
+
+void Eye::LSAanalysis(int option, float object_distance, float off_axis,
+    std::string model)
+{
+    std::ofstream outputfile;
+    outputfile.open ("dat/EyeLSA.csv", std::ios::trunc);
+    float AGE, LensAccomm, PupilSize, AccommOptPower, 
+            RelaxedOptPower, Defocus_diopters;
+    
+    for (int i = 0; i < 20; i++)
+    {
+        
+        for (int j = 1; j < 21; j++)
+        {
+            for (int k = 10; k <25; k++)
+            {
+                LensAccomm = i / 2.0;
+                PupilSize = j / 4.0;
+                AGE = k;
+                
+                Eye::Eye     eye;
+                eye.set_params( LensAccomm, PupilSize, model, AGE );
+                eye.SchematicEye();
+                eye.EyeTracer(object_distance, off_axis);
+                
+                AccommOptPower = eye.FindOpticalPower(1);
+                RelaxedOptPower = eye.FindOpticalPower(2);
+                Defocus_diopters = eye.Diopters(option);
+                
+                outputfile << LensAccomm << "," << PupilSize << "," << AGE << "," << 
+                            AccommOptPower << "," << RelaxedOptPower << "," << 
+                            Defocus_diopters << std::endl;
+            }
+        }
+    }
+    
+    outputfile.close();
+}

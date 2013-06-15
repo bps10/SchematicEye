@@ -20,7 +20,7 @@ Eye::Eye() {}
 Eye::~Eye() {}
 
 
-void Eye::set_params(int option, std::string mod = "dubbelman")
+void Eye::set_params(std::string mod = "dubbelman")
 {
 
     std::cout << "enter lens diopters (mm): " << std::endl;
