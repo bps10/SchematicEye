@@ -80,7 +80,7 @@ class EyePlot():
         '''
         '''
         self.Intensity['PSF'] = np.zeros((4, self.samples))
-        self.Intensity['PSFtotal'] = np.zeros((4, (self.samples * 2)))
+        #self.Intensity['PSFtotal'] = np.zeros((4, (self.samples * 2)))
            
         deriv = np.zeros((4, self.samples))
         deriv[:, 0]     = self.Intensity['intensity'][:,0]
@@ -91,12 +91,12 @@ class EyePlot():
         self.Intensity['PSF'][:, 0] = 1.0
         for i in range(1,self.samples-1):
             self.Intensity['PSF'][:, i] = (self.Intensity['PSF'][:, i - 1] - 
-                                            deriv[:, i]) ** 2.0
-                     
-        self.Intensity['PSFtotal'][:, 1:self.samples + 1] = self.Intensity[
-                                                            'PSF'][:, ::-1]
-        self.Intensity['PSFtotal'][:, self.samples + 1:] = self.Intensity[
-                                                            'PSF'][:, 1:]
+                                            deriv[:, i]) ** 1.0
+        
+        #self.Intensity['PSFtotal'][:, 1:self.samples + 1] = self.Intensity[
+        #                                                    'PSF'][:, ::-1]
+        #self.Intensity['PSFtotal'][:, self.samples + 1:] = self.Intensity[
+        #                                                    'PSF'][:, 1:]
 
     def _genMTF(self):
         '''
@@ -295,10 +295,10 @@ def diffraction(spatial_freq, pupil_size, wavelength=550.0):
     '''
     lam = wavelength / 1000 # convert mm into meters.
     s = spatial_freq
-    s_0 = pupil_size / lam * (180 * 2 * np.pi)# convert to radians
+    s_0 = pupil_size / lam * (180 / np.pi)# convert to radians
     print s_0
     dif = (2.0 / np.pi) * (np.arccos(s / s_0) - 
-                (s / s_0) * np.sqrt(1 - (s / s_0) ** 2.0))
+                (s / s_0) * np.sqrt(1.0 - (s / s_0) ** 2.0))
     return dif
 
 

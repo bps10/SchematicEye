@@ -110,4 +110,19 @@ public:
     float DegreesToMM(float object_distance, float degrees);
     float FindOpticalPower(int opt);
     float Diopters(bool print);
+
+    inline void _simplePrint(std::string message)
+    {
+        std::cout << message << std::endl;
+    }
+
+    inline void _simplePrint(std::string message, float variable)
+    {
+        std::cout << message << variable << std::endl;
+    }
+    inline void _simplePrint(std::string message, int variable)
+    {
+        std::cout << message << variable << std::endl;
+    }
+
 }; 

@@ -98,8 +98,8 @@ void Eye::SchematicEye()
         cornea_radius_ant = 7.87;     // radius of curvature (c).
         cornea_radius_post = 6.40;    // radius of curvature (c).
         
-        lens_ant_k = -(4.0 - ( 0.5 * diopters ) );                                
-        lens_post_k = -3.0;                                                        
+        lens_ant_k = -(4.0 - ( 0.5 * diopters ) );
+        lens_post_k = -3.0;
         lens_ant_radius =   1.0 / ( 1.0 / (12.7 - 0.058 * age ) + 
                 (0.0077 * diopters) ); 
         lens_post_radius = -1.0 / ( 1.0 / (5.9 -  0.013 * age ) + 
@@ -123,34 +123,34 @@ void Eye::SchematicEye()
         cornea_radius_ant = 7.72;        // radius of curvature (c).
         cornea_radius_post = 6.50;       // radius of curvature (c).
         
-        lens_ant_k = -3.1316 - ( 0.34 * log(diopters + 1.0) );                                
-        lens_post_k = -1.0 - ( 0.125 * log(diopters + 1.0) );                                                        
+        lens_ant_k = -3.1316 - ( 0.34 * log(diopters + 1.0) ); 
+        lens_post_k = -1.0 - ( 0.125 * log(diopters + 1.0) );            
         lens_ant_radius =   10.2 - ( 1.75 * log(diopters + 1.0) ); 
         lens_post_radius = -6.0 + ( 0.2294 * log(diopters + 1.0) ); 
     }
     
     if (print == 1)
     {
-        std::cout << "  " << std::endl;
-        
-        std::cout << "pupil size (mm): "              << pupil_size          << std::endl;
-        std::cout << "corneal thickness (mm): "       << corneal_thickness   << std::endl;
-        std::cout << "anterior chamber depth (mm): "  << anterior_chamber    << std::endl;
-        std::cout << "lens thickness (mm): "          << lens_thickness      << std::endl;
-        std::cout << "vitreous length (mm): "         << vitreous_length     << std::endl;
-        std::cout << "axial length (mm): "            << axial_length        << std::endl;
-        
-        std::cout << "cornea: " << std::endl;
-        std::cout << "anterior surface, k (mm): "     << cornea_ant_k        << std::endl;
-        std::cout << "posterior surface, k (mm): "    << cornea_post_k       << std::endl;
-        std::cout << "anterior radius, c (mm): "      << cornea_radius_ant   << std::endl;
-        std::cout << "posterior radius, c (mm): "     << cornea_radius_post  << std::endl;
-        
-        std::cout << "lens: " << std::endl;
-        std::cout << "anterior surface, k (mm): "     << lens_ant_k          << std::endl;
-        std::cout << "posterior surface, k (mm): "    << lens_post_k         << std::endl;
-        std::cout << "anterior radius, c (mm): "      << lens_ant_radius     << std::endl;
-        std::cout << "posterior radius, c (mm): "     << lens_post_radius    << std::endl;
+        _simplePrint("  ");
+
+        _simplePrint("pupil size (mm): ", pupil_size);
+        _simplePrint("corneal thickness (mm): ", corneal_thickness);
+        _simplePrint("anterior chamber depth (mm): ", anterior_chamber);
+        _simplePrint("lens thickness (mm): ", lens_thickness);
+        _simplePrint("vitreous length (mm): ", vitreous_length);
+        _simplePrint("axial length (mm): ", axial_length);
+
+        _simplePrint("cornea");
+        _simplePrint("anterior surface, k (mm): ", cornea_ant_k);
+        _simplePrint("posterior surface, k (mm): ", cornea_post_k);
+        _simplePrint("anterior radiuc, c (mm): ", cornea_radius_ant);
+        _simplePrint("posterior radius, c (mm): " , cornea_radius_post);
+
+        _simplePrint("lens");
+        _simplePrint("anterior surface, k (mm): ", lens_ant_k);
+        _simplePrint("posterior surface, k (mm): ", lens_post_k);
+        _simplePrint("anterior radius, c (mm): ", lens_ant_radius);
+        _simplePrint("posterior radius, c (mm): ", lens_post_radius);
     }
     
     //**********************************************************************
@@ -159,24 +159,27 @@ void Eye::SchematicEye()
     
     // update cornea parameters
     // radius of curvature (c), Schwarzschild constant (k).
-    anterior_cornea_curve = new Curve::Conic( cornea_radius_ant,  cornea_ant_k);  
-    posterior_cornea_curve = new Curve::Conic(cornea_radius_post, cornea_post_k); 
+    anterior_cornea_curve = new Curve::Conic(cornea_radius_ant,  
+        cornea_ant_k);
+    posterior_cornea_curve = new Curve::Conic(cornea_radius_post, 
+        cornea_post_k);
     ant_cornea_shape = new Shape::Disk(5.8);
     post_cornea_shape = new Shape::Disk(4.9); // cornea diameter in mm
     
-    anterior_cornea = new Sys::OpticalSurface(Math::Vector3(0, 0, 0),   // position.
-                                              *anterior_cornea_curve,   // curve.
-                                              *ant_cornea_shape,        // aperture shape.
-                                              Material::none,           // material to left.
-                                              cornea_refract);          // material to right.
-    
+                                                        // position.
+    anterior_cornea = new Sys::OpticalSurface(Math::Vector3(0, 0, 0),   
+                              *anterior_cornea_curve,   // curve.
+                              *ant_cornea_shape,        // aperture shape.
+                              Material::none,           // material to left.
+                              cornea_refract);          // material to right.
+
     posterior_cornea = new Sys::OpticalSurface(Math::Vector3(0, 0, 
-                                               corneal_thickness), // position.
-                                               *posterior_cornea_curve, // curve.
-                                               *post_cornea_shape,      // aperature shape.
-                                               cornea_refract,          // material to left.
-                                               extraOcular_refract);    // material to right.
-    
+                               corneal_thickness), // position.
+                               *posterior_cornea_curve, // curve.
+                               *post_cornea_shape,      // aperature shape.
+                               cornea_refract,          // material to left.
+                               extraOcular_refract);    // material to right.
+
     
     //**********************************************************************
     // add pupil (set location and radius (mm) of pupil (default = 1.5mm).
@@ -184,30 +187,31 @@ void Eye::SchematicEye()
     
     pupil = new Sys::Stop(Math::Vector3(0, 0, 
                         corneal_thickness + anterior_chamber),  pupil_rad);      
-    pupil->set_external_radius( 6.0); // make sure pupil radius is at least as large as cornea.
+    // make sure pupil radius is at least as large as cornea.
+    pupil->set_external_radius( 6.0); 
     
     //**********************************************************************
     // Crystalline lens
     //**********************************************************************
     
     // update lens parameters
-    anterior_lens_curve = new Curve::Conic(    lens_ant_radius,     lens_ant_k);     
-    posterior_lens_curve = new Curve::Conic(    lens_post_radius,     lens_post_k);             
+    anterior_lens_curve = new Curve::Conic(lens_ant_radius, lens_ant_k);     
+    posterior_lens_curve = new Curve::Conic(lens_post_radius, lens_post_k);
     lens_shape = new Shape::Disk(6.0); // lens diameter in mm
     
     anterior_lens = new Sys::OpticalSurface(Math::Vector3(0, 0, 
                         corneal_thickness + anterior_chamber), 
-                                            *anterior_lens_curve,   // curve.
-                                            *lens_shape,            // aperture shape.
-                                            extraOcular_refract,    // material to left.
-                                            lens_refract);          // material to right.
+                                *anterior_lens_curve,   // curve.
+                                *lens_shape,            // aperture shape.
+                                extraOcular_refract,    // material to left.
+                                lens_refract);          // material to right.
     // position.
     posterior_lens = new Sys::OpticalSurface(Math::Vector3(0, 0, 
         corneal_thickness + anterior_chamber + lens_thickness),     
-                                             *posterior_lens_curve, // curve.
-                                             *lens_shape,           // aperture shape.
-                                             lens_refract,          // material to left.
-                                             intraOcular_refract);  // material to right.
+                                 *posterior_lens_curve, // curve.
+                                 *lens_shape,           // aperture shape.
+                                 lens_refract,          // material to left.
+                                 intraOcular_refract);  // material to right.
     
     //**********************************************************************
     // add all of the optical components.
@@ -226,7 +230,8 @@ void Eye::SchematicEye()
     EyeCurve = new Curve::Sphere(-12.0); 
     EyeShape = new Shape::Disk(10.0); // eye radius (mm)
     
-    image = new Sys::Image(Math::Vector3(0, 0, axial_length), *EyeCurve, *EyeShape); 
+    image = new Sys::Image(Math::Vector3(0, 0, axial_length), 
+        *EyeCurve, *EyeShape); 
     
     sys->add(*image);
     sys->set_entrance_pupil(*anterior_cornea);
@@ -381,5 +386,3 @@ float Eye::Diopters(bool print = true)
     }
     
 }
-
-
