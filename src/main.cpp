@@ -23,7 +23,8 @@ void _parse_args(int argc, const char * argv[], int * option,
         if (word.substr(0, 7) == "offaxis") 
             { *offaxis = ::atof(word.substr(8).c_str()); }
 
-        // add in model change param (i.e. Navarro vs Dubbelman) and age option for loop.
+        // add in model change param (i.e. Navarro vs Dubbelman)
+        // and age option for loop.
         if (word.substr(0, 5) == "model")
         {
             if (word.substr(6) == "navarro" or word.substr(6) == "dubbelman") 

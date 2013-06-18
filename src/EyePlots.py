@@ -59,7 +59,7 @@ class EyePlot():
             self.Intensity['lens_accom'][i,:] = dat[
                         i * self.samples:(i + 1) * self.samples, 2]
             self.Intensity['pupil_size'][i,:] = dat[
-                        i * self.samples:(i + 1) * self.samples, 1]
+                        i * self.samples:(i + 1) * self.samples, 3]
 
     def loadLSA_data(self):
         '''

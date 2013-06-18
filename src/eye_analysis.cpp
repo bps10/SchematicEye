@@ -4,7 +4,7 @@
 void Eye::Intensity(int option = 1, float object_distance=10000, 
                     float off_axis=5)
 {
-    int init_diop = 0;
+    int _diop = 0;
     std::ofstream outputfile;
     switch (option)
     { 
@@ -16,8 +16,7 @@ void Eye::Intensity(int option = 1, float object_distance=10000,
                         << "," << "lens focus (D)" << "pupil size (mm)"<< std::endl;
             for (int i = 0; i < 4; i++)
             {    
-                
-                set_params(init_diop + (i * 2.0), pupil_size, model, age);
+                set_params(_diop, pupil_size, model, age);
                 SchematicEye();
                 EyeTracer(object_distance, off_axis);
 
@@ -29,11 +28,14 @@ void Eye::Intensity(int option = 1, float object_distance=10000,
                 double    radius = 0.0; // in mm.
                 while ( radius < 1.0)
                 {
-                    outputfile << spot.get_encircled_intensity( radius ) << "," << radius
-                        << "," << init_diop + (i * 2.0) << pupil_size << std::endl;
+                    outputfile << spot.get_encircled_intensity( radius ) 
+                        << "," << radius
+                        << "," << _diop 
+                        << "," << ReturnPupilSize() << std::endl;
                     
                     radius += 0.005;
                 }
+                _diop += 2;
             }
         }
         case 2: // best focus
@@ -50,11 +52,13 @@ void Eye::Intensity(int option = 1, float object_distance=10000,
                 double    radius = 0.0; // in mm.
                 while ( radius < 1.0)
                 {
-                    outputfile << spot.get_encircled_intensity( radius ) << "," << radius
-                        << "," << init_diop + (i * 2.0) <<std::endl;
+                    outputfile << spot.get_encircled_intensity( radius ) 
+                        << "," << radius
+                        << "," << _diop <<std::endl;
                     
                     radius += 0.005;
                 }
+                _diop += 2;
             }
         }
         outputfile.close();
@@ -108,18 +112,19 @@ void Eye::EyePlots(int option = 1, float object_distance=10000,
         }
         case 2:
         {
+            int _diop = 0;
             Io::RendererSvg renderer("img/eye.svg", 1200,800);
             renderer.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
             renderer.set_page_layout(1,4);
             for (int i = 0; i < 4; i++)
             {    
                 
-                set_params(init_diop + (i * 2.0), pupil_size, model, age);
+                set_params(_diop, pupil_size, model, age);
                 SchematicEye();
                 EyeTracer(object_distance, off_axis);
                 //EyePlots();
                 
-                std::cout << "lens (diopters): " << init_diop + (i * 2.0) << "  Age (years): " 
+                std::cout << "lens (diopters): " << _diop << "  Age (years): " 
                             << age << "  pupil size (mm):" << pupil_size << std::endl;
                             
                 std::cout << "unaccommodated defocus: " << FindOpticalPower(2)
@@ -133,7 +138,7 @@ void Eye::EyePlots(int option = 1, float object_distance=10000,
                 sys->draw_2d(renderer);                
                 tracer->trace();
                 tracer->get_trace_result().draw_2d(renderer);
-                
+                _diop += 2;
                 
             }
         }    
@@ -185,11 +190,11 @@ void Eye::SpotPlot(int option = 1, float object_distance=10000,
             renderer3.set_page_layout(1,4);
             renderer4.set_page_layout(1,4);
 
-            int init_diop = 0;
+            int _diop = 0;
             for (int i = 0; i < 4; i++)
             {    
                 
-                set_params(init_diop + (i * 2.0), pupil_size, model, age);
+                set_params(_diop, pupil_size, model, age);
                 SchematicEye();
                 EyeTracer(object_distance, off_axis);
                 EyePlots(1);
@@ -222,7 +227,7 @@ void Eye::SpotPlot(int option = 1, float object_distance=10000,
                 ref<Data::Plot> plot2 = spot2.get_encircled_intensity_plot(100);
 
                 plot2->draw(renderer4);                
-
+                _diop += 2;
 
             }
         }    

@@ -15,8 +15,8 @@
     + can define wavelengths in Goptical: add_spectral_line.
     + need to figure out how to create a lens with specific wavelength pass.
 3
-- Allow user to change model parameters (dubbelman vs navarro): navarro
-    needs work, see python script.
+- Allow user to change model parameters (dubbelman vs navarro)
+    + double check navarro: refractive indices need updating.
 4
 - Work out GRIN model.
 5
@@ -63,28 +63,22 @@ void Eye::SchematicEye()
 {
     // create new system
     sys = new Sys::System();
-    
+
     //**********************************************************************
-    // set material refraction indexes. Eventually include GRIN for lens:
+    // Define system parameters using Dubbelman 2005 or Navarro 1985/1999:
     //**********************************************************************
     
-    ref<Material::AbbeVd> cornea_refract =      ref<Material::AbbeVd>::create(1.367, 56.50);
-    
-    ref<Material::AbbeVd> extraOcular_refract = ref<Material::AbbeVd>::create(1.3374, 49.61);
-    
-    ref<Material::AbbeVd> lens_refract =        ref<Material::AbbeVd>::create(1.42, 48.00);
-    
-    ref<Material::AbbeVd> intraOcular_refract = ref<Material::AbbeVd>::create(1.336, 50.90);
-    
-    //**********************************************************************
-    // Define system parameters using Dubbelman 2005 or Navarro 1985:
-    //**********************************************************************
+    // make sure model is lower case:
     std::transform(model.begin(), model.end(), model.begin(), ::tolower);
     
-    float corneal_thickness, anterior_chamber, lens_thickness, axial_length, 
-    pupil_rad, cornea_ant_k, cornea_post_k, cornea_radius_ant, cornea_radius_post, 
-    lens_ant_k, lens_post_k, lens_ant_radius, lens_post_radius, vitreous_length;
+    float corneal_thickness, anterior_chamber, lens_thickness, 
+    axial_length, pupil_rad, cornea_ant_k, cornea_post_k, 
+    cornea_radius_ant, cornea_radius_post, lens_ant_k, lens_post_k,
+    lens_ant_radius, lens_post_radius, vitreous_length;
     
+    ref<Material::AbbeVd> cornea_refract, extraOcular_refract,
+    lens_refract, intraOcular_refract;
+
     corneal_thickness = GetCornealThickness(model);
     anterior_chamber = GetAnteriorChamber(model, age, diopters);
     lens_thickness = GetLensThickness(model, age, diopters);
@@ -94,31 +88,45 @@ void Eye::SchematicEye()
         
     if (model == "dubbelman") 
     {
-        cornea_ant_k = 0.82;             // Schwarzschild constant (k).
-        cornea_post_k = 0.66;            // Schwarzschild constant (k).
-        cornea_radius_ant = 7.87;        // radius of curvature (c).
+        cornea_refract = ref<Material::AbbeVd>::create(1.367, 56.50);
+        extraOcular_refract = ref<Material::AbbeVd>::create(1.3374, 49.61);
+        lens_refract = ref<Material::AbbeVd>::create(1.42, 48.00);
+        intraOcular_refract = ref<Material::AbbeVd>::create(1.336, 50.90);
+
+        cornea_ant_k = 0.82;          // Schwarzschild constant (k).
+        cornea_post_k = 0.66;         // Schwarzschild constant (k).
+        cornea_radius_ant = 7.87;     // radius of curvature (c).
         cornea_radius_post = 6.40;    // radius of curvature (c).
         
         lens_ant_k = -(4.0 - ( 0.5 * diopters ) );                                
         lens_post_k = -3.0;                                                        
-        lens_ant_radius =   1.0 / ( 1.0 / (12.7 - 0.058 * age ) + (0.0077 * diopters) ); 
-        lens_post_radius = -1.0 / ( 1.0 / (5.9 -  0.013 * age ) + (0.0043 * diopters) ); 
+        lens_ant_radius =   1.0 / ( 1.0 / (12.7 - 0.058 * age ) + 
+                (0.0077 * diopters) ); 
+        lens_post_radius = -1.0 / ( 1.0 / (5.9 -  0.013 * age ) + 
+                (0.0043 * diopters) ); 
     }
     
     if (model == "navarro")
     { 
+        float lens_refractive_index;
+        lens_refractive_index = 1.42 + ( 9.0 * pow(10, -5) * (
+            10.0 * diopters + pow(diopters, 2)) );
 
-        pupil_rad = pupil_size / 2.0;
-        
-        cornea_ant_k = -0.26;             // Schwarzschild constant (k).
-        cornea_post_k = 0;                // Schwarzschild constant (k).
+        cornea_refract = ref<Material::AbbeVd>::create(1.367, 56.50);
+        extraOcular_refract = ref<Material::AbbeVd>::create(1.3374, 49.61);
+        lens_refract = ref<Material::AbbeVd>::create(lens_refractive_index,
+                                                     48.00);
+        intraOcular_refract = ref<Material::AbbeVd>::create(1.336, 50.90);
+    
+        cornea_ant_k = -0.26;            // Schwarzschild constant (k).
+        cornea_post_k = 0;               // Schwarzschild constant (k).
         cornea_radius_ant = 7.72;        // radius of curvature (c).
-        cornea_radius_post = 6.50;        // radius of curvature (c).
+        cornea_radius_post = 6.50;       // radius of curvature (c).
         
-        lens_ant_k = -3.1316;                                
-        lens_post_k = -1.0;                                                        
-        lens_ant_radius =   10.2; 
-        lens_post_radius = -6.0; 
+        lens_ant_k = -3.1316 - ( 0.34 * log(diopters + 1.0) );                                
+        lens_post_k = -1.0 - ( 0.125 * log(diopters + 1.0) );                                                        
+        lens_ant_radius =   10.2 - ( 1.75 * log(diopters + 1.0) ); 
+        lens_post_radius = -6.0 + ( 0.2294 * log(diopters + 1.0) ); 
     }
     
     if (print == 1)
@@ -275,9 +283,16 @@ float Eye::GetCornealThickness(std::string model)
 float Eye::GetAnteriorChamber(std::string model, float age, float diopters)
 {
     float anterior_chamber;
-    if (model == "dubbelman") // in one paper is written as 3.87 !PLUS! (0.010 ...
-    {anterior_chamber = 3.87 - ( 0.010  * age ) - ( diopters * ( 0.048 - 0.0004 * age) );}
-    if (model == "navarro") {anterior_chamber = 3.05;}
+    if (model == "dubbelman") 
+    // in one paper is written as 3.87 !PLUS! (0.010 ...
+    {
+        anterior_chamber = 3.87 - ( 0.010  * age ) - ( 
+            diopters * ( 0.048 - 0.0004 * age) );
+    }
+    if (model == "navarro") 
+    {
+        anterior_chamber = 3.05 - ( 0.05 * log(diopters + 1.0) );
+    }
     
     return anterior_chamber; 
 }
@@ -287,8 +302,14 @@ float Eye::GetLensThickness(std::string model, float age, float diopters)
 {
     float lens_thickness;
     if (model == "dubbelman")
-    {lens_thickness = 2.93 + ( 0.0236 * age ) + ( diopters * ( 0.058 - 0.0005 * age));}
-    if (model == "navarro") {lens_thickness = 4.0;}
+    {
+        lens_thickness = 2.93 + ( 0.0236 * age ) + ( diopters * 
+            ( 0.058 - 0.0005 * age));
+    }
+    if (model == "navarro")
+    {
+        lens_thickness = 4.0 + ( 0.1 * log(diopters + 1.0) );
+    }
     return lens_thickness;
 }
 
