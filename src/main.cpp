@@ -9,11 +9,13 @@ void _parse_args(int argc, const char * argv[], int * option,
                 float * object_distance, float * offaxis, std::string * model)
 {    
     for (int i = 1; i < argc; i++) 
-    {
+    {   
         std::string word = argv[i];
+        // transform to lower case if not already
+        std::transform(word.begin(), word.end(), word.begin(), ::tolower);
 
         if (word == "plot") { *option = 0; }
-        if (word == "loop") { *option = 1; } 
+        if (word == "lsa") { *option = 1; } 
         if (word == "series") { *option = 2; }       
 
         if (word.substr(0, 8) == "distance") 
@@ -22,13 +24,13 @@ void _parse_args(int argc, const char * argv[], int * option,
             { *offaxis = ::atof(word.substr(8).c_str()); }
 
         // add in model change param (i.e. Navarro vs Dubbelman) and age option for loop.
-        if (i == 2 && option == 0)
+        if (word.substr(0, 5) == "model")
         {
-            std::string word = argv[2];
-            if (argv[i] == "navarro" or argv[i] == "dubbelman") 
-                { *model = argv[i]; }
+            if (word.substr(6) == "navarro" or word.substr(6) == "dubbelman") 
+                { *model = word.substr(6); }
             else 
-                {std::cout << "sorry model option not understood" << std::endl;}
+                {std::cout << "sorry model option not understood, \
+                 using dubbelman" << std::endl;}
         }
 
     }
@@ -37,46 +39,35 @@ void _parse_args(int argc, const char * argv[], int * option,
 int main(int argc, const char * argv[])
 {
     // set defaults:
-    int * option;
-    float * object_distance;
-    float * offaxis;
-    std::string * model;
-
-    option = new int (0);
-    object_distance = new float (10000);
-    offaxis = new float (0);
-    model = new std::string ("dubbelman");
-
-    std::cout << *object_distance << std::endl;
+    int * option = new int (0);
+    float * object_distance = new float (100000);
+    float * offaxis = new float (0);
+    std::string * model = new std::string ("dubbelman");
 
     _parse_args(argc, argv, option, object_distance, offaxis, model);
-    
-    std::cout << *object_distance << std::endl;
 
     Eye::Eye eye;
 
-    if (argc < 1 || *option == 0)
+    if (*option == 0)
     {
-        
-        eye.SimplePlot(*object_distance, *offaxis);
+        eye.SimplePlot(*object_distance, *offaxis, *model);
     }
     
     if (*option == 1)
     {
-
-        eye.LSAanalysis(*option, *object_distance, *offaxis, *model);
+        eye.LSAanalysis(*object_distance, *offaxis, *model);
     }
+
     if (*option == 2)
     {
-    std::cout << "starting values... " << std::endl;
-    std::cout << "  "  << std::endl;
-    
-    Eye::Eye        eye;
-    eye.set_params("dubbelman");
-    eye.EyePlots(2, *object_distance, *offaxis);
-    eye.Intensity(1, *object_distance, *offaxis);
+        eye.AccommodationAnalysis(*object_distance, *offaxis, *model);
     }
-    
+    /*
+    if (*option == 3)
+    {
+        eye.ImageSeriesAnalysis(*offaxis, *model);
+    }
+    */
     
     return 0;
 }

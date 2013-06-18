@@ -11,6 +11,9 @@ void Eye::Intensity(int option = 1, float object_distance=10000,
         case 1: // not best focus
         {
             outputfile.open ("dat/Intensity.csv", std::ios::trunc);
+            // headers:
+            outputfile << "encircled intensity" << "," << "radius (mm)"
+                        << "," << "lens focus (D)" << "pupil size (mm)"<< std::endl;
             for (int i = 0; i < 4; i++)
             {    
                 
@@ -27,7 +30,7 @@ void Eye::Intensity(int option = 1, float object_distance=10000,
                 while ( radius < 1.0)
                 {
                     outputfile << spot.get_encircled_intensity( radius ) << "," << radius
-                        << "," << init_diop + (i * 2.0) <<std::endl;
+                        << "," << init_diop + (i * 2.0) << pupil_size << std::endl;
                     
                     radius += 0.005;
                 }
@@ -226,17 +229,29 @@ void Eye::SpotPlot(int option = 1, float object_distance=10000,
     }
 }
 
-void Eye::SimplePlot(float object_distance, float off_axis)
+void Eye::SimplePlot(float object_distance, float off_axis,
+            std::string model)
 {
-    set_params("dubbelman");
+    set_params(model);
     SchematicEye();
     EyeTracer(object_distance, off_axis);
     EyePlots(1, object_distance, off_axis); 
-    Diopters(0);
+    Diopters(true);
 
 }
 
-void Eye::LSAanalysis(int option, float object_distance, float off_axis,
+void Eye::AccommodationAnalysis(float object_distance, float off_axis, 
+            std::string model)
+{
+    std::cout << "starting values... " << std::endl;
+    std::cout << "  "  << std::endl;
+    
+    set_params(model);
+    EyePlots(2, object_distance, off_axis);
+    Intensity(1, object_distance, off_axis);
+}
+
+void Eye::LSAanalysis(float object_distance, float off_axis,
     std::string model)
 {
     std::ofstream outputfile;
@@ -262,7 +277,7 @@ void Eye::LSAanalysis(int option, float object_distance, float off_axis,
                 
                 AccommOptPower = eye.FindOpticalPower(1);
                 RelaxedOptPower = eye.FindOpticalPower(2);
-                Defocus_diopters = eye.Diopters(option);
+                Defocus_diopters = eye.Diopters(print=true);
                 
                 outputfile << LensAccomm << "," << PupilSize << "," << AGE << "," << 
                             AccommOptPower << "," << RelaxedOptPower << "," << 

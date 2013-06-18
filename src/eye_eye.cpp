@@ -7,12 +7,21 @@
 #include "SchematicEye.hh"
 
 /*
-- User options: age. GUI.
+1
 - MTF, PSF.
-- Off axis - change location of point source.
+- Create object series option.
+2
 - Add spectacle lens option - introduce chromatic analysis.
-    + can define wavelengths in Goptical: add_spectral_line
-- Work out GRIN model - where are current numbers from?.
+    + can define wavelengths in Goptical: add_spectral_line.
+    + need to figure out how to create a lens with specific wavelength pass.
+3
+- Allow user to change model parameters (dubbelman vs navarro): navarro
+    needs work, see python script.
+4
+- Work out GRIN model.
+5
+- Off axis - change location of point source for marginal rays.
+- GUI.
 */
 
 Eye::Eye() {}
@@ -239,9 +248,9 @@ void Eye::EyeTracer(float object_distance=10000, float offaxis=0)
     sys->add(*source_point);
     
     // configure sources
-    source_rays->add_chief_rays(*pupil);
-    source_rays->add_marginal_rays(*pupil, pupil_size / 2.0);
-    source_rays->add_marginal_rays(*pupil, -pupil_size / 2.0);
+    source_rays->add_chief_rays(*sys);
+    source_rays->add_marginal_rays(*sys, pupil_size / 2.0);
+    source_rays->add_marginal_rays(*sys, -pupil_size / 2.0);
     
     source_point->clear_spectrum();
 
@@ -302,6 +311,11 @@ float Eye::GetVitreousLen(std::string model)
     return vitreous_length;
 }
 
+float Eye::ReturnPupilSize()
+{
+    return pupil_size;
+}
+
 float Eye::DegreesToMM(float object_distance, float degrees)
 {
     float radians;
@@ -322,7 +336,7 @@ float Eye::FindOpticalPower(int opt = 1)
 }
 
 
-float Eye::Diopters(int option = 0)
+float Eye::Diopters(bool print = true)
 {
     Analysis::Focus     focus(*sys);
     float relaxed_power, accomm_power, defocus_diopter;
@@ -330,7 +344,7 @@ float Eye::Diopters(int option = 0)
     accomm_power = FindOpticalPower(1);
     defocus_diopter = accomm_power - relaxed_power;
     
-    if (option == 0)
+    if (print == true)
     {
     std::cout << " " << std::endl;
     std::cout << "focal plane: " << std::endl;
@@ -340,7 +354,7 @@ float Eye::Diopters(int option = 0)
     return 0.0;
     }
     
-    if (option == 1)
+    if (print == false)
     {
     return defocus_diopter;
     }
