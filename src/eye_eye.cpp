@@ -4,7 +4,7 @@
 //  Created by Brian Schmidt on 10/8/12.
 //
 
-#include "SchematicEye.hh"
+#include "eye_eye.hh"
 
 /*
 1
@@ -24,9 +24,35 @@
 - GUI.
 */
 
+namespace SchematicEye {
+
 Eye::Eye() {}
 
-Eye::~Eye() {}
+Eye::~Eye() 
+{
+    delete sys;
+    delete tracer;
+    
+    delete source_rays;
+    delete source_point; 
+    
+    delete anterior_cornea;
+    delete posterior_cornea;
+    delete pupil;
+    delete anterior_lens;
+    delete posterior_lens;
+    delete image;
+    
+    delete anterior_cornea_curve;
+    delete posterior_cornea_curve;
+    delete anterior_lens_curve;
+    delete posterior_lens_curve;
+    delete ant_cornea_shape;
+    delete post_cornea_shape;
+    delete lens_shape;
+    delete EyeShape;
+    delete EyeCurve;
+}
 
 
 void Eye::set_params(std::string mod = "dubbelman")
@@ -349,40 +375,4 @@ float Eye::DegreesToMM(float object_distance, float degrees)
     return abs(object_distance * tan(radians));
 }
 
-
-float Eye::FindOpticalPower(int opt = 1)
-{
-    Analysis::Focus        focus(*sys);
-    float power, focal_len;
-    if (opt == 1) { focal_len = focus.get_best_focus()[0][2]; }
-    if (opt == 2) { focal_len = GetAxialLength(model, age, diopters); }
-    
-    power = 1.0 / (focal_len / 1000.0);
-    return power;
-}
-
-
-float Eye::Diopters(bool print = true)
-{
-    Analysis::Focus     focus(*sys);
-    float relaxed_power, accomm_power, defocus_diopter;
-    relaxed_power = FindOpticalPower(2);
-    accomm_power = FindOpticalPower(1);
-    defocus_diopter = accomm_power - relaxed_power;
-    
-    if (print == true)
-    {
-    std::cout << " " << std::endl;
-    std::cout << "focal plane: " << std::endl;
-    std::cout << focus.get_best_focus()[0][2] << std::endl;
-    std::cout << "defocus diopters: " << std::endl;
-    std::cout << defocus_diopter << std::endl;
-    return 0.0;
-    }
-    
-    if (print == false)
-    {
-    return defocus_diopter;
-    }
-    
 }

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "SchematicEye.hh"
+#include "eye_analysis.hh"
 
 
 void _parse_args(int argc, const char * argv[], int * option,
@@ -47,26 +47,26 @@ int main(int argc, const char * argv[])
 
     _parse_args(argc, argv, option, object_distance, offaxis, model);
 
-    Eye::Eye eye;
+    Eye::Analysis::Analysis analysis;
 
     if (*option == 0)
     {
-        eye.SimplePlot(*object_distance, *offaxis, *model);
+        analysis.SimplePlot(*object_distance, *offaxis, *model);
     }
     
     if (*option == 1)
     {
-        eye.LSAanalysis(*object_distance, *offaxis, *model);
+        analysis.LSAanalysis(*object_distance, *offaxis, *model);
     }
 
     if (*option == 2)
     {
-        eye.AccommodationAnalysis(*object_distance, *offaxis, *model);
+        analysis.AccommodationAnalysis(*object_distance, *offaxis, *model);
     }
     /*
     if (*option == 3)
     {
-        eye.ImageSeriesAnalysis(*offaxis, *model);
+        analysis.ImageSeriesAnalysis(*offaxis, *model);
     }
     */
     

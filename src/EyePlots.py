@@ -80,7 +80,7 @@ class EyePlot():
         '''
         '''
         self.Intensity['PSF'] = np.zeros((4, self.samples))
-        #self.Intensity['PSFtotal'] = np.zeros((4, (self.samples * 2)))
+        self.Intensity['PSFtotal'] = np.zeros((4, (self.samples * 2)))
            
         deriv = np.zeros((4, self.samples))
         deriv[:, 0]     = self.Intensity['intensity'][:,0]
@@ -93,10 +93,10 @@ class EyePlot():
             self.Intensity['PSF'][:, i] = (self.Intensity['PSF'][:, i - 1] - 
                                             deriv[:, i]) ** 1.0
         
-        #self.Intensity['PSFtotal'][:, 1:self.samples + 1] = self.Intensity[
-        #                                                    'PSF'][:, ::-1]
-        #self.Intensity['PSFtotal'][:, self.samples + 1:] = self.Intensity[
-        #                                                    'PSF'][:, 1:]
+        self.Intensity['PSFtotal'][:, 1:self.samples + 1] = self.Intensity[
+                                                            'PSF'][:, ::-1]
+        self.Intensity['PSFtotal'][:, self.samples + 1:] = self.Intensity[
+                                                            'PSF'][:, 1:]
 
     def _genMTF(self):
         '''
@@ -294,12 +294,39 @@ def diffraction(spatial_freq, pupil_size, wavelength=550.0):
 
     '''
     lam = wavelength / 1000 # convert mm into meters.
-    s = spatial_freq
-    s_0 = pupil_size / lam * (180 / np.pi)# convert to radians
-    print s_0
+    NA = NumericalAperature(1.5, D=pupil_size, focal_len=24.0)
+    s = np.linspace(0, 1, len(spatial_freq))
+
+    s_0 = NA / lam # * (180 / np.pi)# convert to radians
+    print "pupil_size: ", pupil_size, "NA: ", NA, "s_0", s_0
     dif = (2.0 / np.pi) * (np.arccos(s / s_0) - 
                 (s / s_0) * np.sqrt(1.0 - (s / s_0) ** 2.0))
     return dif
+
+def NumericalAperature(n, theta=None, D=None, focal_len=None):
+    '''
+    Find the numerical aperature of a system
+
+    :param n: refractive index
+    :param theta: angle of marginal rays
+
+    According to the formula
+
+    $$NA = n \\sin(\\theta)$$
+
+    or 
+
+    $$NA = n \\sin(\\arctan(\\frac{D}{2f}))$$
+       
+    '''
+    if D is None and focal_len is None and theta is not None:
+        out = n * np.sin(theta)
+    elif theta is None and D is not None and focal_len is not None:
+        out = n * np.sin(np.arctan(D / 2 * focal_len))
+    else:
+        raise IOError("check parameters.")
+
+    return out
 
 
 def decibels(x):
@@ -315,6 +342,6 @@ if __name__ == "__main__":
     out = EyePlot()
     #out.LSAplot(acc = [2,6], age = [10, 15])
     #out.PowerPlots()
-    #out.EncircledIntensityPlot()
-    #out.PSFplot()
+    out.EncircledIntensityPlot()
+    out.PSFplot()
     out.MTFplot()

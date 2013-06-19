@@ -1,11 +1,19 @@
-#include "SchematicEye.hh" 
+#include "eye_eye.hh"
+#include "eye_analysis.hh" 
 
+namespace SchematicEye {
 
-void Eye::Intensity(int option = 1, float object_distance=10000, 
+Analysis::Analysis() {};
+
+Analysis::~Analysis() {};
+
+void Analysis::Intensity(int option = 1, float object_distance=10000, 
                     float off_axis=5)
 {
     int _diop = 0;
     std::ofstream outputfile;
+    Eye eye;
+
     switch (option)
     { 
         case 1: // not best focus
@@ -16,14 +24,14 @@ void Eye::Intensity(int option = 1, float object_distance=10000,
                         << "," << "lens focus (D)" << "pupil size (mm)"<< std::endl;
             for (int i = 0; i < 4; i++)
             {    
-                set_params(_diop, pupil_size, model, age);
-                SchematicEye();
-                EyeTracer(object_distance, off_axis);
+                eye.set_params(_diop, pupil_size, model, age);
+                eye.SchematicEye();
+                eye.EyeTracer(object_distance, off_axis);
 
-                sys->get_tracer_params().set_default_distribution(
+                eye.sys->get_tracer_params().set_default_distribution(
                                             Trace::Distribution(Trace::HexaPolarDist, 100)); 
                                 
-                Analysis::Spot spot(*sys);  
+                Goptical::Analysis::Spot spot(*sys);  
 
                 double    radius = 0.0; // in mm.
                 while ( radius < 1.0)
@@ -31,7 +39,7 @@ void Eye::Intensity(int option = 1, float object_distance=10000,
                     outputfile << spot.get_encircled_intensity( radius ) 
                         << "," << radius
                         << "," << _diop 
-                        << "," << ReturnPupilSize() << std::endl;
+                        << "," << eye.ReturnPupilSize() << std::endl;
                     
                     radius += 0.005;
                 }
@@ -45,9 +53,9 @@ void Eye::Intensity(int option = 1, float object_distance=10000,
             for (int i = 0; i < 4; i++)
             {    
 
-                Analysis::Spot spot(*sys);
-                Analysis::Focus focus(*sys);
-                image->set_plane(focus.get_best_focus());            
+                Goptical::Analysis::Spot spot(*sys);
+                Goptical::Analysis::Focus focus(*sys);
+                eye.image->set_plane(focus.get_best_focus());            
 
                 double    radius = 0.0; // in mm.
                 while ( radius < 1.0)
@@ -66,16 +74,21 @@ void Eye::Intensity(int option = 1, float object_distance=10000,
     }
 }
 
-void Eye::EyePlots(int option = 1, float object_distance=10000, 
-                    float off_axis=5)
+void Analysis::EyePlots(bool best_focus = false, float object_distance=10000, 
+                    float off_axis=5, std::string model)
 {    
 
-            
-    switch (option) 
+    Eye::Eye eye;
+
+    switch (best_focus) 
     {
-        case 1:
+        case false:
         {
-            Io::RendererSvg renderer("img/eye.svg", 1200,1200);
+            eye.set_params(model);
+            eye.SchematicEye();
+            eye.EyeTracer(object_distance, off_axis);
+
+            Goptical::Io::RendererSvg renderer("img/eye.svg", 1200,1200);
             renderer.set_margin_ratio(0.35, 0.25, 0.1, 0.1);
     
             const int number (1);
@@ -85,22 +98,22 @@ void Eye::EyePlots(int option = 1, float object_distance=10000,
             renderer.set_page_layout(1,2);
             
             // draw 2d system layout: 
-            sys->draw_2d_fit(renderer);
-            sys->draw_2d(renderer);
+            eye.sys->draw_2d_fit(renderer);
+            eye.sys->draw_2d(renderer);
             for (int i = 0; i < number; i++)
             {
                 // trace and draw rays from rays source
                 sys->enable_single<Sys::Source>(*source_rays);
-                tracer->get_trace_result().set_generated_save_state(*source_rays);
+                eye.tracer->get_trace_result().set_generated_save_state(*source_rays);
                 
                 renderer.set_page(0);
-                tracer->trace();
-                tracer->get_trace_result().draw_2d(renderer);
+                eye.tracer->trace();
+                eye.tracer->get_trace_result().draw_2d(renderer);
                 
                 // longitudinal aberration
-                fan = new Analysis::RayFan(*sys);
+                fan = new Goptical::Analysis::RayFan(*sys);
                 
-                sys->enable_single<Sys::Source>(*source_point);
+                eye.sys->enable_single<Sys::Source>(*source_point);
                 ref<Data::Plot> abber_plot = fan->get_plot(Analysis::RayFan::EntranceHeight,
                                                     Analysis::RayFan::LongitudinalDistance);
                 
@@ -108,36 +121,40 @@ void Eye::EyePlots(int option = 1, float object_distance=10000,
                 abber_plot->draw(renderer);
 
             }
-                break;
+            Diopters(true);
         }
-        case 2:
+        case true:
         {
+            eye.set_params(model);
+            eye.SchematicEye();
+            eye.EyeTracer(object_distance, off_axis);
+
             int _diop = 0;
-            Io::RendererSvg renderer("img/eye.svg", 1200,800);
+            Goptical::Io::RendererSvg renderer("img/eye.svg", 1200,800);
             renderer.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
             renderer.set_page_layout(1,4);
             for (int i = 0; i < 4; i++)
             {    
                 
-                set_params(_diop, pupil_size, model, age);
-                SchematicEye();
-                EyeTracer(object_distance, off_axis);
+                eye.set_params(_diop, eye.pupil_size, model, age);
+                eye.SchematicEye();
+                eye.EyeTracer(object_distance, off_axis);
                 //EyePlots();
                 
                 std::cout << "lens (diopters): " << _diop << "  Age (years): " 
-                            << age << "  pupil size (mm):" << pupil_size << std::endl;
+                            << age << "  pupil size (mm):" << eye.pupil_size << std::endl;
                             
-                std::cout << "unaccommodated defocus: " << FindOpticalPower(2)
-                            << "  best focus (diopter): " << FindOpticalPower(1) << std::endl;
+                std::cout << "unaccommodated defocus: " << eye.FindOpticalPower(2)
+                            << "  best focus (diopter): " << eye.FindOpticalPower(1) << std::endl;
                 
                 renderer.set_page(i);
                 
-                sys->enable_single<Sys::Source>(*source_rays);
-                tracer->get_trace_result().set_generated_save_state(*source_rays);
-                sys->draw_2d_fit(renderer);
-                sys->draw_2d(renderer);                
-                tracer->trace();
-                tracer->get_trace_result().draw_2d(renderer);
+                eye.sys->enable_single<Sys::Source>(*source_rays);
+                eye.tracer->get_trace_result().set_generated_save_state(*source_rays);
+                eye.sys->draw_2d_fit(renderer);
+                eye.sys->draw_2d(renderer);                
+                eye.tracer->trace();
+                eye.tracer->get_trace_result().draw_2d(renderer);
                 _diop += 2;
                 
             }
@@ -146,25 +163,27 @@ void Eye::EyePlots(int option = 1, float object_distance=10000,
     }
 }
 
-void Eye::SpotPlot(int option = 1, float object_distance=10000, 
+void Analysis::SpotPlot(int option = 1, float object_distance=10000, 
                     float off_axis=5)
 {
+    Eye::Eye eye;
     switch (option)
     { 
         case 1:
         {
             const int number (1);
             //  change position of light slightly for a series of plots.
-            Io::RendererSvg     renderer("img/spot.svg",  300 * 1, 300 * number, Io::rgb_black);   
+            Goptical::Io::RendererSvg     renderer("img/spot.svg",  300 * 1, 300 * number, 
+                Io::rgb_black);   
             
-            sys->get_tracer_params().set_default_distribution(
-                                                Trace::Distribution(Trace::HexaPolarDist, 200)); 
+            eye.sys->get_tracer_params().set_default_distribution(
+                                    Trace::Distribution(Trace::HexaPolarDist, 200)); 
             renderer.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
             renderer.set_page_layout(1, number);
             
             for (int i = 0; i < number; i++)
             {
-                Analysis::Spot spot(*sys);
+                Goptical::Analysis::Spot spot(*sys);
                 
                 renderer.set_page(i);
                 spot.draw_diagram(renderer);
@@ -175,10 +194,10 @@ void Eye::SpotPlot(int option = 1, float object_distance=10000,
         }
         case 2:
         {
-            Io::RendererSvg renderer1("img/spot.svg", 300,1200, Io::rgb_black);
-            Io::RendererSvg renderer2("img/spot_intensity.svg", 640, 480*4);
-            Io::RendererSvg renderer3("img/spotBestFocus.svg", 300,1200, Io::rgb_black);
-            Io::RendererSvg renderer4("img/spot_intensityBestFocus.svg", 640, 480*4);
+            Goptical::Io::RendererSvg renderer1("img/spot.svg", 300,1200, Io::rgb_black);
+            Goptical::Io::RendererSvg renderer2("img/spot_intensity.svg", 640, 480*4);
+            Goptical::Io::RendererSvg renderer3("img/spotBestFocus.svg", 300,1200, Io::rgb_black);
+            Goptical::Io::RendererSvg renderer4("img/spot_intensityBestFocus.svg", 640, 480*4);
 
             renderer1.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
             renderer2.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
@@ -194,18 +213,18 @@ void Eye::SpotPlot(int option = 1, float object_distance=10000,
             for (int i = 0; i < 4; i++)
             {    
                 
-                set_params(_diop, pupil_size, model, age);
-                SchematicEye();
-                EyeTracer(object_distance, off_axis);
-                EyePlots(1);
+                eye.set_params(_diop, pupil_size, model, age);
+                eye.SchematicEye();
+                eye.EyeTracer(object_distance, off_axis);
+                eye.EyePlots(1);
                 
                 renderer1.set_page(i);
                 renderer2.set_page(i);
-                sys->get_tracer_params().set_default_distribution(
-                                            Trace::Distribution(Trace::HexaPolarDist, 100)); 
+                eye.sys->get_tracer_params().set_default_distribution(
+                                    Trace::Distribution(Trace::HexaPolarDist, 100)); 
                 
                 
-                Analysis::Spot spot1(*sys);
+                Goptical::Analysis::Spot spot1(*sys);
                 
                 spot1.draw_diagram(renderer1);    
 
@@ -218,9 +237,9 @@ void Eye::SpotPlot(int option = 1, float object_distance=10000,
                 renderer3.set_page(i);
                 renderer4.set_page(i);
                 
-                Analysis::Spot spot2(*sys);
+                Goptical::Analysis::Spot spot2(*sys);
                 Analysis::Focus focus(*sys);
-                image->set_plane(focus.get_best_focus());
+                Goptical::image->set_plane(focus.get_best_focus());
 
                 spot2.draw_diagram(renderer3);    
 
@@ -234,29 +253,30 @@ void Eye::SpotPlot(int option = 1, float object_distance=10000,
     }
 }
 
-void Eye::SimplePlot(float object_distance, float off_axis,
+void Analysis::SimplePlot(float object_distance, float off_axis,
             std::string model)
 {
-    set_params(model);
-    SchematicEye();
-    EyeTracer(object_distance, off_axis);
-    EyePlots(1, object_distance, off_axis); 
-    Diopters(true);
+    //Eye::Eye eye;
+    //set_params(model);
+    //SchematicEye();
+    //EyeTracer(object_distance, off_axis);
+    EyePlots(1, object_distance, off_axis, model); 
+    //Diopters(true);
 
 }
 
-void Eye::AccommodationAnalysis(float object_distance, float off_axis, 
+void Analysis::AccommodationAnalysis(float object_distance, float off_axis, 
             std::string model)
 {
     std::cout << "starting values... " << std::endl;
     std::cout << "  "  << std::endl;
     
-    set_params(model);
-    EyePlots(2, object_distance, off_axis);
+    //set_params(model);
+    EyePlots(2, object_distance, off_axis, model);
     Intensity(1, object_distance, off_axis);
 }
 
-void Eye::LSAanalysis(float object_distance, float off_axis,
+void Analysis::LSAanalysis(float object_distance, float off_axis,
     std::string model)
 {
     std::ofstream outputfile;
@@ -287,9 +307,49 @@ void Eye::LSAanalysis(float object_distance, float off_axis,
                 outputfile << LensAccomm << "," << PupilSize << "," << AGE << "," << 
                             AccommOptPower << "," << RelaxedOptPower << "," << 
                             Defocus_diopters << std::endl;
+
             }
         }
     }
     
     outputfile.close();
+}
+
+float Analysis::FindOpticalPower(int opt = 1)
+{
+    Analysis::Focus        focus(*sys);
+    float power, focal_len;
+    if (opt == 1) { focal_len = focus.get_best_focus()[0][2]; }
+    if (opt == 2) { focal_len = GetAxialLength(model, age, diopters); }
+    
+    power = 1.0 / (focal_len / 1000.0);
+    return power;
+}
+
+
+float Analysis::Diopters(bool print = true)
+{
+    Analysis::Focus     focus(*sys);
+    float relaxed_power, accomm_power, defocus_diopter;
+    relaxed_power = FindOpticalPower(2);
+    accomm_power = FindOpticalPower(1);
+    defocus_diopter = accomm_power - relaxed_power;
+    
+    if (print == true)
+    {
+    std::cout << " " << std::endl;
+    std::cout << "focal plane: " << std::endl;
+    std::cout << focus.get_best_focus()[0][2] << std::endl;
+    std::cout << "defocus diopters: " << std::endl;
+    std::cout << defocus_diopter << std::endl;
+    return 0.0;
+    }
+    
+    if (print == false)
+    {
+    return defocus_diopter;
+    }
+    
+}
+
 }
