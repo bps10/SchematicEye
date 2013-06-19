@@ -30,6 +30,7 @@ Eye::Eye() {}
 
 Eye::~Eye() 
 {
+/*
     delete sys;
     delete tracer;
     
@@ -52,6 +53,7 @@ Eye::~Eye()
     delete lens_shape;
     delete EyeShape;
     delete EyeCurve;
+*/
 }
 
 
@@ -373,6 +375,43 @@ float Eye::DegreesToMM(float object_distance, float degrees)
     float radians;
     radians = degrees * PI / 180;
     return abs(object_distance * tan(radians));
+}
+
+float Eye::FindOpticalPower(int opt = 1)
+{
+    Analysis::Focus        focus(*sys);
+    float power, focal_len;
+    if (opt == 1) { focal_len = focus.get_best_focus()[0][2]; }
+    if (opt == 2) { focal_len = GetAxialLength(model, age, diopters); }
+    
+    power = 1.0 / (focal_len / 1000.0);
+    return power;
+}
+
+
+float Eye::Diopters(bool print = true)
+{
+    Analysis::Focus     focus(*sys);
+    float relaxed_power, accomm_power, defocus_diopter;
+    relaxed_power = FindOpticalPower(2);
+    accomm_power = FindOpticalPower(1);
+    defocus_diopter = accomm_power - relaxed_power;
+    
+    if (print == true)
+    {
+    std::cout << " " << std::endl;
+    std::cout << "focal plane: " << std::endl;
+    std::cout << focus.get_best_focus()[0][2] << std::endl;
+    std::cout << "defocus diopters: " << std::endl;
+    std::cout << defocus_diopter << std::endl;
+    return 0.0;
+    }
+    
+    if (print == false)
+    {
+    return defocus_diopter;
+    }
+    
 }
 
 }

@@ -23,7 +23,6 @@ void _parse_args(int argc, const char * argv[], int * option,
         if (word.substr(0, 7) == "offaxis") 
             { *offaxis = ::atof(word.substr(8).c_str()); }
 
-        // add in model change param (i.e. Navarro vs Dubbelman)
         // and age option for loop.
         if (word.substr(0, 5) == "model")
         {
@@ -47,7 +46,7 @@ int main(int argc, const char * argv[])
 
     _parse_args(argc, argv, option, object_distance, offaxis, model);
 
-    Eye::Analysis::Analysis analysis;
+    SchematicEye::Analysis analysis;
 
     if (*option == 0)
     {
