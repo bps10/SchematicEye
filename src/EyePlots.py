@@ -15,6 +15,12 @@ import PlottingFun as pf
 # [ ] fix mtfs: DC component, smoothing, prob density, power of 2?
 # [ ] figure out psfs       
 
+def rad2deg(radians):
+    '''
+    '''
+    return radians * 180.0 / np.pi
+
+
 class EyePlot():
 
     def __init__(self):
@@ -22,9 +28,9 @@ class EyePlot():
         self.loadData()
         
         self.eye_length = 24 # diameter in mm
-        self.deg = 1 # in deg
-        mm_per_deg = (self.eye_length  * np.pi) / 360.0
-        self.xvals = np.linspace(0, 1, self.samples) / mm_per_deg
+        self.retinaImage = 1
+        rad = np.tan(self.retinaImage / 24)
+        self.mm_per_deg = rad2deg(rad)
         #* (self.samples / self.samples) #* self.Intensity['downsample']
         
     ## Data Manipulation Methods ##
@@ -35,6 +41,7 @@ class EyePlot():
         '''
         dat = np.genfromtxt('dat/Intensity.csv', delimiter = ',',
             skip_header=1)
+
         self.Intensity = {}
         self.Intensity['downsample'] = 1.0 # default = 1.0 or none.
         dat = dat[::int(self.Intensity['downsample'])]
@@ -42,9 +49,11 @@ class EyePlot():
         self.samples = int( dat.shape[0] / 4.0 )
 
         # Preallocate memory:
+        self.xvals = np.zeros((1, self.samples))
+        self.deg_off_axis = dat[0,4]
+        print "degrees off axis: ", self.deg_off_axis
         self.Intensity['rawintensity'] = np.zeros((4, self.samples)) 
         self.Intensity['intensity'] = np.zeros((4, self.samples))
-        self.Intensity['radius'] = np.zeros((4, self.samples))
         self.Intensity['lens_accom'] = np.zeros((4, self.samples))
         self.Intensity['pupil_size'] = np.zeros((4, self.samples))
         for i in range(0,4):
@@ -54,12 +63,12 @@ class EyePlot():
                             i * self.samples:(i + 1) * self.samples, 0]
             self.Intensity['intensity'][i,:] = dat[
                         i * self.samples:(i + 1) * self.samples, 0] / totals
-            self.Intensity['radius'][i,:] = dat[
-                        i * self.samples:(i + 1) * self.samples, 1]
             self.Intensity['lens_accom'][i,:] = dat[
                         i * self.samples:(i + 1) * self.samples, 2]
             self.Intensity['pupil_size'][i,:] = dat[
                         i * self.samples:(i + 1) * self.samples, 3]
+
+        self.xvals = dat[0:self.samples, 1]
 
     def loadLSA_data(self):
         '''
@@ -83,15 +92,19 @@ class EyePlot():
         self.Intensity['PSFtotal'] = np.zeros((4, (self.samples * 2)))
            
         deriv = np.zeros((4, self.samples))
-        deriv[:, 0]     = self.Intensity['intensity'][:,0]
-        deriv[:, 1:] = self.Intensity['intensity'][:,1:] - self.Intensity[
-                                                    'intensity'][:, 0:-1]
+        deriv[:, 0] = self.Intensity['rawintensity'][:, 0]
+        deriv[:, 1:] = self.Intensity['rawintensity'][:,1:] - self.Intensity[
+                                                    'rawintensity'][:, 0:-1]
                                     
-                                    
-        self.Intensity['PSF'][:, 0] = 1.0
-        for i in range(1,self.samples-1):
-            self.Intensity['PSF'][:, i] = (self.Intensity['PSF'][:, i - 1] - 
-                                            deriv[:, i]) ** 1.0
+        for i in range(0, self.samples - 1):
+            radius = self.xvals[i + 1] - self.xvals[i]
+            area = np.pi * radius ** 2.0
+            self.Intensity['PSF'][:, i] = deriv[:, i] / area 
+            #(self.Intensity['PSF'][:, i - 1] - deriv[:, i])
+
+        for i in range(0, 4):
+            self.Intensity['PSF'][i, :] = (self.Intensity['PSF'][i, :] 
+                        / np.sum(self.Intensity['PSF'][i, :]))
         
         self.Intensity['PSFtotal'][:, 1:self.samples + 1] = self.Intensity[
                                                             'PSF'][:, ::-1]
@@ -104,14 +117,14 @@ class EyePlot():
         if 'PSF' not in self.Intensity:
             self._genPSF()
 
-        self.Intensity['MTF'] = np.zeros((4, int(self.samples / 2.0) ))
+        self.Intensity['MTF'] = np.zeros((4, np.floor(self.samples / 2.0)))
         for i in range(0, 4):
 
             # find next power of 2 to make more efficient.
-
-            self.Intensity['MTF'][i, ] = np.abs(np.fft.fftshift(
-            np.fft.fft(self.Intensity['PSF'][i,:])))[
-                                int(self.samples / 2.0):]
+            print self.Intensity['MTF'].shape, np.floor(self.samples / 2)
+            self.Intensity['MTF'][i, :] = np.abs(np.fft.fftshift(
+                                np.fft.fft(self.Intensity['PSF'][i,:])))[
+                                np.ceil(self.samples / 2.0):]
 
             self.Intensity['MTF'][i, :] = (self.Intensity['MTF'][i] / 
                                         np.max(self.Intensity['MTF'][i]))
@@ -146,7 +159,7 @@ class EyePlot():
             self.Intensity['intensity'][0,:].shape)
         for i in range(0, 4):
 
-            ax.plot(self.xvals,
+            ax.plot(self.xvals / self.mm_per_deg,
                 self.Intensity['intensity'][i, :].T, 
                 label = '{0} D'.format(self.Intensity['lens_accom'][i, 0]))
 
@@ -170,12 +183,12 @@ class EyePlot():
 
         for i in range(0, self.Intensity['PSFtotal'].shape[0]):
 
-            ax.plot(self.xvals,
+            ax.plot(self.xvals / self.mm_per_deg,
                 self.Intensity['PSFtotal'][i, size:size + self.samples].T, 
                 label = '{0} D'.format(self.Intensity['lens_accom'][i, 0]))
 
         ax.legend(loc = 'upper right').set_title('lens accommodation')
-        plt.ylim([-0.05, 1.01])
+        #plt.ylim([-0.05, 1.01])
         plt.ylabel('point spread')
         plt.xlabel('degrees')
         plt.tight_layout()
@@ -191,8 +204,8 @@ class EyePlot():
         pf.AxisFormat(20)
         pf.TufteAxis(ax, ['left', 'bottom'], [5, 5], integer='on')
 
-        cycles = (np.arange(1, (self.samples + 1) / 2)) / 2
-        cpd = cycles / self.deg
+        cycles = (np.arange(1, np.ceil((self.samples + 1) / 2))) / 2
+        cpd = cycles * self.mm_per_deg #/ self.deg
 
         for i in range(0,self.Intensity['MTF'].shape[0]):
 
@@ -206,7 +219,9 @@ class EyePlot():
                     label = '{0} D'.format(self.Intensity['lens_accom'][i,0]))
 
         # plot diffraction limited case:
-        diffract = diffraction(cpd, 3) #self.Intensity['pupil_size'][0,0])
+        diffract = diffraction(self.mm_per_deg, self.samples, self.eye_length,
+                        self.Intensity['pupil_size'][0,0])
+        diffract = diffract #* self.mm_per_deg ** -1
         if not density: 
             ax.semilogy(cpd, diffract, 'k')
         if density:
@@ -288,19 +303,21 @@ class EyePlot():
         plt.show()
 
 
-def diffraction(spatial_freq, pupil_size, wavelength=550.0):
+def diffraction(deg, samples, pupil_size, focal_len, ref_index=1.55, wavelength=550.0):
     '''See Appendix B of "Light, the Retinal Image and Photoreceptors"
     Packer & Williams.
 
     '''
     lam = wavelength / 1000 # convert mm into meters.
-    NA = NumericalAperature(1.5, D=pupil_size, focal_len=24.0)
-    s = np.linspace(0, 1, len(spatial_freq))
+    NA = NumericalAperature(ref_index, D=pupil_size, focal_len=focal_len)
+    s = np.linspace(0, deg, np.floor(samples / 2))
 
-    s_0 = NA / lam # * (180 / np.pi)# convert to radians
+    s_0 = NA / lam # convert to radians
     print "pupil_size: ", pupil_size, "NA: ", NA, "s_0", s_0
+
     dif = (2.0 / np.pi) * (np.arccos(s / s_0) - 
-                (s / s_0) * np.sqrt(1.0 - (s / s_0) ** 2.0))
+
+            (s / s_0) * np.sqrt(1.0 - (s / s_0) ** 2.0))
     return dif
 
 def NumericalAperature(n, theta=None, D=None, focal_len=None):
@@ -342,6 +359,6 @@ if __name__ == "__main__":
     out = EyePlot()
     #out.LSAplot(acc = [2,6], age = [10, 15])
     #out.PowerPlots()
-    out.EncircledIntensityPlot()
+    #out.EncircledIntensityPlot()
     out.PSFplot()
     out.MTFplot()

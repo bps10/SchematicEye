@@ -97,7 +97,6 @@ namespace SchematicEye {
         {
             std::cout << message << std::endl;
         }
-
         inline void _simplePrint(std::string message, float variable)
         {
             std::cout << message << variable << std::endl;

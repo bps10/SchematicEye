@@ -10,15 +10,19 @@
 1
 - MTF, PSF.
 - Create object series option.
+- Create eccentricity series option.
+- Move Eye eye = Eye() out of analysis functions into main or wrapper functions.
 2
 - Add spectacle lens option - introduce chromatic analysis.
     + can define wavelengths in Goptical: add_spectral_line.
     + need to figure out how to create a lens with specific wavelength pass.
+    + take mean of wavelengths during analysis.
 3
-- Allow user to change model parameters (dubbelman vs navarro)
-    + double check navarro: refractive indices need updating.
+- double check navarro: refractive indices need updating.
+- add manual for program.
 4
 - Work out GRIN model.
+- Cython wrapper.
 5
 - Off axis - change location of point source for marginal rays.
 - GUI.
@@ -292,11 +296,12 @@ void Eye::EyeTracer(float object_distance=10000, float offaxis=0)
     source_rays->add_chief_rays(*sys);
     source_rays->add_marginal_rays(*sys, pupil_size / 2.0);
     source_rays->add_marginal_rays(*sys, -pupil_size / 2.0);
-    
-    source_point->clear_spectrum();
 
     // add wavelengths of light
+    source_point->clear_spectrum();
+    source_point->add_spectral_line(Light::SpectralLine::C);
     source_point->add_spectral_line(Light::SpectralLine::e);
+    source_point->add_spectral_line(Light::SpectralLine::F);
     
     // ray tracer
     tracer = new Trace::Tracer(*sys);

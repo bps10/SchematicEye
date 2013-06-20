@@ -16,7 +16,8 @@ void _parse_args(int argc, const char * argv[], int * option,
 
         if (word == "plot") { *option = 0; }
         if (word == "lsa") { *option = 1; } 
-        if (word == "series") { *option = 2; }       
+        if (word == "series") { *option = 2; }  
+        if (word == "spot") { *option = 3; }     
 
         if (word.substr(0, 8) == "distance") 
             { *object_distance = ::atof(word.substr(9).c_str()); }
@@ -62,12 +63,16 @@ int main(int argc, const char * argv[])
     {
         analysis.AccommodationAnalysis(*object_distance, *offaxis, *model);
     }
+    if (*option == 3)
+    {
+        analysis.SpotPlot(1, *object_distance, *offaxis, *model);
+    }
     /*
     if (*option == 3)
     {
-        analysis.ImageSeriesAnalysis(*offaxis, *model);
+        analysis.ImageSeriesAnalysis(*object_distance, *offaxis, *model);
     }
     */
-    
+
     return 0;
 }
