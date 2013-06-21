@@ -9,17 +9,16 @@
 /*
 1
 - MTF, PSF.
-- Create object series option.
-- Create eccentricity series option.
 - Move Eye eye = Eye() out of analysis functions into main or wrapper functions.
 2
 - Add spectacle lens option - introduce chromatic analysis.
     + can define wavelengths in Goptical: add_spectral_line.
     + need to figure out how to create a lens with specific wavelength pass.
     + take mean of wavelengths during analysis.
+- Create ReturnEyeLength() method.
 3
 - double check navarro: refractive indices need updating.
-- add manual for program.
+- create a comprehensive analysis option - schematic, abberations, psf, etc.
 4
 - Work out GRIN model.
 - Cython wrapper.
@@ -37,7 +36,7 @@ Eye::~Eye()
 /*
     delete sys;
     delete tracer;
-    
+*/   
     delete source_rays;
     delete source_point; 
     
@@ -57,7 +56,7 @@ Eye::~Eye()
     delete lens_shape;
     delete EyeShape;
     delete EyeCurve;
-*/
+
 }
 
 

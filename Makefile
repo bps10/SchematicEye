@@ -20,7 +20,7 @@ eye: $(EYEFILES)
 	$(CXX) $(CXXFLAGS)  -o $@ $^ $(LIB_FLAGS)
 
 plots: src/EyePlots.py
-	./src/EyePlots.py
+	./src/EyePlots.py -m $(args)
 
 .PHONY: clean
 

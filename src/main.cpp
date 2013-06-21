@@ -45,6 +45,12 @@ void _parse_args(int argc, const char * argv[], int * option,
         }
 
     }
+    if (*param != "age" && *param != "pupil" && *param != "angle" && *param != "focus" && 
+        *param != "distance")
+    {
+        std::cout << "sorry option not understood, using object angle." << std::endl;
+        *param = "angle";
+    }
 }
 
 int main(int argc, const char * argv[])
@@ -90,7 +96,8 @@ int main(int argc, const char * argv[])
 
         if (*option == 0)
         {
-            analysis.SimplePlot(*object_distance, *offaxis, *model);
+            analysis.EyePlots(1, *object_distance, *offaxis, *model, 
+                        *age, *pupil, *diopters);
         }
         
         if (*option == 1)
@@ -105,14 +112,9 @@ int main(int argc, const char * argv[])
         }
         if (*option == 3)
         {
-            analysis.SpotPlot(1, *object_distance, *offaxis, *model);
+            analysis.SpotPlot(1, *object_distance, *offaxis, *model, 
+                        *age, *pupil, *diopters);
         }
-        /*
-        if (*option == 3)
-        {
-            analysis.ImageSeriesAnalysis(*object_distance, *offaxis, *model);
-        }
-        */
 
         return 0;
     }

@@ -20,9 +20,6 @@
 #include "eye_eye.hh"
 
 
-//#define _FOREACH(var, cont)             \
-//    for (typeof((cont).begin()) var = (cont).begin(); var !=(cont).end(); ++var)
-
 namespace SchematicEye 
 {
     class Analysis
@@ -32,7 +29,6 @@ namespace SchematicEye
 
         Goptical::Analysis::RayFan * fan;
 
-        void EyePlots(int best_focus, float object_distance, float off_axis, std::string model);
         void ReturnIntercepts(const Trace::Result &result, const Sys::Surface &s);
 
     public:
@@ -42,15 +38,17 @@ namespace SchematicEye
 
         double _max_intensity;
 
-        void SimplePlot(float object_distance, float off_axis, 
+        void LSAanalysis(float object_distance, float off_axis,
             std::string model);
+        void EyePlots(int best_focus, float object_distance, 
+                    float off_axis, std::string model, float age,
+                    float pupil_size, float diopters);
         void IntensityAnalysis(std::string param, float object_distance, 
                     float off_axis, std::string model, float age,
                     float pupil_size, float diopters, int iter);
-        void LSAanalysis(float object_distance, float off_axis,
-            std::string model);
-        void SpotPlot(int option, float object_distance, float off_axis, 
-            std::string model);
+        void SpotPlot(int option, float object_distance, 
+                    float off_axis, std::string model, float age,
+                    float pupil_size, float diopters);
 
         inline float _get_input(std::string message)
         {
