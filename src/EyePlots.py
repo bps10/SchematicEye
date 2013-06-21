@@ -210,7 +210,7 @@ class EyePlot():
         for i in range(0,self.Intensity['MTF'].shape[0]):
 
             if not density:
-                ax.semilogy(cpd,
+                ax.plot(cpd,
                     self.Intensity['MTF'][i, :].T,
                     label = '{0} D'.format(self.Intensity['lens_accom'][i,0]))
             if density:
@@ -223,7 +223,7 @@ class EyePlot():
                         self.Intensity['pupil_size'][0,0])
         diffract = diffract #* self.mm_per_deg ** -1
         if not density: 
-            ax.semilogy(cpd, diffract, 'k')
+            ax.plot(cpd, diffract, 'k')
         if density:
             ax.semilogx(cpd, decibels(diffract), 'k')
 

@@ -8,97 +8,78 @@ Analysis::Analysis() {};
 Analysis::~Analysis() {};
 
 
-void Analysis::Intensity(int best_focus = 1, float object_distance=10000, 
-                    float off_axis=5, std::string model="dubbleman")
+void Analysis::IntensityAnalysis(std::string param, float object_distance=100000, 
+                    float off_axis=5, std::string model="dubbleman", 
+                    float age=20, float pupil_size=3, float diopters=0, int iter=4)
 {
-    int _diop;
-    float diopters, pupil_size, age, init_diop;
+    if (param != "age" && param != "pupil" && param != "angle" && param != "focus" && 
+        param != "distance")
+    {
+        std::cout << "sorry option not understood, using object angle." << std::endl;
+        param = "angle";
+    }
+
+    int _diop = diopters;
     std::ofstream outputfile;
 
-    switch (best_focus)
-    { 
-        case 1: // not best focus
-        {
-            diopters = _get_input("lens diopters (mm)");
-            pupil_size = _get_input("pupil size (mm)");
-            age = _get_input("age (years)");
-            _diop = diopters;
+    // add ability to change name of Intensity
+    // setup output files and headers:
+    outputfile.open ("dat/Intensity.csv", std::ios::trunc);
+    outputfile << "encircled intensity" << "," 
+                << "radius (mm)" << "," 
+                << "lens focus (D)" << "," 
+                << "pupil size (mm)" << ","
+                << "offaxis (deg)" << ","
+                << "age (y)" << ","
+                << "obj distance (mm)" << ","
+                << "model" << std::endl;
 
-            // setup output files and headers:
-            outputfile.open ("dat/Intensity.csv", std::ios::trunc);
-            outputfile << "encircled intensity" << "," 
-                        << "radius (mm)" << "," 
-                        << "lens focus (D)" << "," 
-                        << "pupil size (mm)" << ","
-                        << "offaxis (deg)" << std::endl;
-            for (int i = 0; i < 4; i++)
-            {    
-                Eye eye = Eye();  
-                eye.set_params(_diop, pupil_size, model, age);
-                eye.SchematicEye();
-                eye.EyeTracer(object_distance, off_axis);
+    for (int i = 0; i < iter; i++)
+    {    
+        Eye eye = Eye();  
+        eye.set_params(_diop, pupil_size, model, age);
+        eye.SchematicEye();
+        eye.EyeTracer(object_distance, off_axis);
 
-                std::cout << "lens (diopters): " << _diop << "  Age (years): " 
-                            << eye.age << "  pupil size (mm):" << eye.pupil_size << std::endl;
-                            
-                std::cout << "unaccommodated defocus: " << eye.FindOpticalPower(2)
-                            << "  best focus (diopter): " << eye.FindOpticalPower(1) << std::endl;
-                            
-                eye.sys->get_tracer_params().set_default_distribution(
-                                            Trace::Distribution(Trace::HexaPolarDist, 200)); 
-                                
-                Goptical::Analysis::Spot spot(*eye.sys);  
-
-                double    radius = 0.005; // in mm.
-                while ( radius < 1.01)
-                {
-                    // use .get_ray_wavelen_set() to process spot for each wavelength, then average
-                    outputfile << spot.get_encircled_intensity( radius ) 
-                        << "," << radius
-                        << "," << _diop 
-                        << "," << eye.ReturnPupilSize() 
-                        << "," << off_axis << std::endl;
+        std::cout << "lens (diopters): " << _diop << "  Age (years): " 
+                    << eye.age << "  pupil size (mm):" << eye.pupil_size 
+                    << "  off axis (deg):" << off_axis
+                    << "  obj dist (mm): " << object_distance << std::endl;
                     
-                    radius += 0.005;
-                }
-                //delete &eye;
-                _diop += 2;
-            }
-            break;
-        }
-        case 2: // best focus
-        {
-            outputfile.open ("dat/IntensityBestFocus.csv", std::ios::trunc);
-
-            for (int i = 0; i < 4; i++)
-            {    
-                Eye eye = Eye(); 
-                eye.set_params(diopters, pupil_size, model, age);
-                eye.SchematicEye();
-                eye.EyeTracer(object_distance, off_axis);
-
-                Goptical::Analysis::Spot spot(*eye.sys);
-                Goptical::Analysis::Focus focus(*eye.sys);
-                eye.image->set_plane(focus.get_best_focus());            
-
-                double    radius = 0.0; // in mm.
-                while ( radius < 1.0)
-                {
-                    outputfile << spot.get_encircled_intensity( radius ) 
-                        << "," << radius
-                        << "," << _diop 
-                        << "," << eye.ReturnPupilSize() << std::endl;
+        std::cout << "unaccommodated defocus: " << eye.FindOpticalPower(2)
+                    << "  best focus (diopter): " << eye.FindOpticalPower(1) << std::endl;
                     
-                    radius += 0.005;
-                }
-                //delete &eye;
-                _diop += 2;
-            }
+        eye.sys->get_tracer_params().set_default_distribution(
+                                    Trace::Distribution(Trace::HexaPolarDist, 200)); 
+                        
+        Goptical::Analysis::Spot spot(*eye.sys);  
+
+        double radius = 0.005; // in mm.
+        while ( radius < 1.01)
+        {
+            // use .get_ray_wavelen_set() to process spot for each wavelength? then wighted average?
+            outputfile << spot.get_encircled_intensity( radius ) 
+                << "," << radius
+                << "," << _diop 
+                << "," << eye.ReturnPupilSize() 
+                << "," << off_axis 
+                << "," << age 
+                << "," << object_distance 
+                << "," << model << std::endl;
+            
+            radius += 0.005;
         }
-        outputfile.close();
-           
+        // increment the chosen variable.
+        if (param == "age") { age += 2; }
+        if (param == "pupil") { pupil_size++; }
+        if (param == "focus") { _diop += 2; }
+        if (param == "angle") { off_axis += 5; }
+        if (param == "distance") { object_distance = pow(10, 4 - i); }
+    
     }
+
 }
+
 
 void Analysis::EyePlots(int best_focus = 1, float object_distance=10000, 
                     float off_axis=5, std::string model="dubbleman")
@@ -184,27 +165,6 @@ void Analysis::EyePlots(int best_focus = 1, float object_distance=10000,
     }
 }
 
-void Analysis::ReturnIntercepts(const Goptical::Trace::Result &result, const Goptical::Sys::Surface &s)
-{
-    _max_intensity = result.get_max_ray_intensity();
-    //std::cout <<  << std::endl;
-    
-    //_FOREACH(i, result.get_intercepted(s))
-    //{
-
-    //}
-
-    //for(typeof(Sys::Surface i = (result.get_intercepted(s)).begin(); i != (result.get_intercepted(s)).end(); i++)
-     //   {
-            
-            //const Trace::Ray &ray = **i;
-            // dont need global transform here, draw ray intercept points in
-            // surface local coordinates.
-            //ray.get_intercept_point().project_xy();
-            //std::cout << ray.get_intercept_point().project_xy();
-           
-     //   }
-}
 
 void Analysis::LSAanalysis(float object_distance, float off_axis,
     std::string model)
@@ -215,8 +175,7 @@ void Analysis::LSAanalysis(float object_distance, float off_axis,
             RelaxedOptPower, Defocus_diopters;
 
     for (int i = 0; i < 20; i++)
-    {
-        
+    {   
         for (int j = 1; j < 21; j++)
         {
             for (int k = 10; k <25; k++)
@@ -344,25 +303,14 @@ void Analysis::SpotPlot(int option = 1, float object_distance=10000,
 void Analysis::SimplePlot(float object_distance, float off_axis,
             std::string model)
 {
-    //Eye::Eye eye;
-    //set_params(model);
-    //SchematicEye();
-    //EyeTracer(object_distance, off_axis);
     EyePlots(1, object_distance, off_axis, model); 
-    //Diopters(true);
-
 }
-
-void Analysis::AccommodationAnalysis(float object_distance, float off_axis, 
+/*
+void Analysis::IntensityAnalysis(std::string param, float object_distance, float off_axis, 
             std::string model)
 {
-    std::cout << "starting values... " << std::endl;
-    std::cout << "  "  << std::endl;
-    
-    //set_params(model);
-    //EyePlots(1, object_distance, off_axis, model);
-    Intensity(1, object_distance, off_axis, model);
+    Intensity(param, object_distance, off_axis, model);
 }
-
+*/
 
 }

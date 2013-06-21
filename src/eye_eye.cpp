@@ -106,7 +106,7 @@ void Eye::SchematicEye()
     float corneal_thickness, anterior_chamber, lens_thickness, 
     axial_length, pupil_rad, cornea_ant_k, cornea_post_k, 
     cornea_radius_ant, cornea_radius_post, lens_ant_k, lens_post_k,
-    lens_ant_radius, lens_post_radius, vitreous_length;
+    lens_ant_radius, lens_post_radius, vitreous_length, lens_refractive_index;
     
     ref<Material::AbbeVd> cornea_refract, extraOcular_refract,
     lens_refract, intraOcular_refract;
@@ -117,12 +117,13 @@ void Eye::SchematicEye()
     vitreous_length = GetVitreousLen(model);
     axial_length = GetAxialLength(model, age, diopters);
     pupil_rad = pupil_size / 2.0;
-        
+    lens_refractive_index = GetLensRefractiveIndex(model, age, diopters);
+
     if (model == "dubbelman") 
     {
-        cornea_refract = ref<Material::AbbeVd>::create(1.367, 56.50);
-        extraOcular_refract = ref<Material::AbbeVd>::create(1.3374, 49.61);
-        lens_refract = ref<Material::AbbeVd>::create(1.42, 48.00);
+        cornea_refract = ref<Material::AbbeVd>::create(1.376, 56.50);
+        extraOcular_refract = ref<Material::AbbeVd>::create(1.336, 49.61);
+        lens_refract = ref<Material::AbbeVd>::create(lens_refractive_index, 48.00);
         intraOcular_refract = ref<Material::AbbeVd>::create(1.336, 50.90);
 
         cornea_ant_k = 0.82;          // Schwarzschild constant (k).
@@ -140,15 +141,12 @@ void Eye::SchematicEye()
     
     if (model == "navarro")
     { 
-        float lens_refractive_index;
-        lens_refractive_index = 1.42 + ( 9.0 * pow(10, -5) * (
-            10.0 * diopters + pow(diopters, 2)) );
-
-        cornea_refract = ref<Material::AbbeVd>::create(1.367, 56.50);
-        extraOcular_refract = ref<Material::AbbeVd>::create(1.3374, 49.61);
+        // refract indices from Navarro 1985 for lambda = 656.3nm
+        cornea_refract = ref<Material::AbbeVd>::create(1.37405, 56.50);
+        extraOcular_refract = ref<Material::AbbeVd>::create(1.3354, 49.61);
         lens_refract = ref<Material::AbbeVd>::create(lens_refractive_index,
                                                      48.00);
-        intraOcular_refract = ref<Material::AbbeVd>::create(1.336, 50.90);
+        intraOcular_refract = ref<Material::AbbeVd>::create(1.3407, 50.90);
     
         cornea_ant_k = -0.26;            // Schwarzschild constant (k).
         cornea_post_k = 0;               // Schwarzschild constant (k).
@@ -299,21 +297,35 @@ void Eye::EyeTracer(float object_distance=10000, float offaxis=0)
 
     // add wavelengths of light
     source_point->clear_spectrum();
+    //source_point->add_spectral_line(Light::SpectralLine::e);
     source_point->add_spectral_line(Light::SpectralLine::C);
-    source_point->add_spectral_line(Light::SpectralLine::e);
-    source_point->add_spectral_line(Light::SpectralLine::F);
+    //source_point->add_spectral_line(Light::SpectralLine::F);
     
     // ray tracer
     tracer = new Trace::Tracer(*sys);
     
 }
 
+float Eye::GetLensRefractiveIndex(std::string model, float age, float diopters)
+{
+
+    float lens_ref_ind;
+    if (model == "dubbelman") 
+    { 
+            lens_ref_ind = 1.441 - 0.00039 * age + 0.0013 * diopters; 
+    }
+    if (model == "navarro") 
+    { 
+        lens_ref_ind = 1.42 + ( 9.0 * pow(10, -5) * (10.0 * diopters + pow(diopters, 2)) ); 
+    }
+    return lens_ref_ind;
+}
 
 float Eye::GetCornealThickness(std::string model)
 {    
     float corneal_thickness;
-    if (model == "dubbelman")    {corneal_thickness = 0.574;}
-    if (model == "navarro")     {corneal_thickness = 0.55;}
+    if (model == "dubbelman") { corneal_thickness = 0.574; }
+    if (model == "navarro") { corneal_thickness = 0.55; }
     return corneal_thickness; 
 }
 

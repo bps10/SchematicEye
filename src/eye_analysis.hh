@@ -32,7 +32,6 @@ namespace SchematicEye
 
         Goptical::Analysis::RayFan * fan;
 
-        void Intensity(int best_focus, float object_distance, float off_axis, std::string model);
         void EyePlots(int best_focus, float object_distance, float off_axis, std::string model);
         void ReturnIntercepts(const Trace::Result &result, const Sys::Surface &s);
 
@@ -45,8 +44,9 @@ namespace SchematicEye
 
         void SimplePlot(float object_distance, float off_axis, 
             std::string model);
-        void AccommodationAnalysis(float object_distance, float off_axis, 
-            std::string model);
+        void IntensityAnalysis(std::string param, float object_distance, 
+                    float off_axis, std::string model, float age,
+                    float pupil_size, float diopters, int iter);
         void LSAanalysis(float object_distance, float off_axis,
             std::string model);
         void SpotPlot(int option, float object_distance, float off_axis, 
