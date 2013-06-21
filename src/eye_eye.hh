@@ -88,6 +88,7 @@ namespace SchematicEye {
         float GetAxialLength(std::string model, float age, float diopters);
         float GetVitreousLen(std::string model);
         float ReturnPupilSize();
+        float ReturnAxialLength();
 
         float FindOpticalPower(int opt);
         float Diopters(bool print);

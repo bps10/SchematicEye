@@ -36,7 +36,7 @@ Eye::~Eye()
 /*
     delete sys;
     delete tracer;
-*/   
+*/  
     delete source_rays;
     delete source_point; 
     
@@ -365,13 +365,18 @@ float Eye::GetLensThickness(std::string model, float age, float diopters)
 
 float Eye::GetAxialLength(std::string model, float age, float diopters)
 {    
-    float a, b, c;
-    a = GetAnteriorChamber(model, age, diopters);
-    b = GetLensThickness(model, age, diopters);
-    c = GetVitreousLen(model);
-    return a + b + c;
+    float a, b, c, d;
+    a = GetCornealThickness(model);
+    b = GetAnteriorChamber(model, age, diopters);
+    c = GetLensThickness(model, age, diopters);
+    d = GetVitreousLen(model);
+    return a + b + c + d;
 }
 
+float Eye::ReturnAxialLength()
+{
+    return GetAxialLength(model, age, diopters);
+}
 
 float Eye::GetVitreousLen(std::string model)
 { 

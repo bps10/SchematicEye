@@ -8,7 +8,7 @@ Analysis::Analysis() {};
 Analysis::~Analysis() {};
 
 
-void Analysis::IntensityAnalysis(std::string param, float object_distance=100000, 
+void Analysis::IntensityAnalysis(std::string param, float object_distance=1000000, 
                     float off_axis=5, std::string model="dubbleman", 
                     float age=20, float pupil_size=3, float diopters=0, int iter=4)
 {
@@ -26,6 +26,7 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
                 << "age_y" << ","
                 << "obj_distance_mm" << ","
                 << "model" << ","
+                << "axial_len_mm" << ","
                 << "iterations" << std::endl;
 
     for (int i = 0; i < iter; i++)
@@ -46,25 +47,29 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
                     << "  best focus (diopter): " << eye.FindOpticalPower(1) << std::endl;
                     
         eye.sys->get_tracer_params().set_default_distribution(
-                                    Trace::Distribution(Trace::HexaPolarDist, 300)); 
+                                    Trace::Distribution(Trace::HexaPolarDist, 250)); 
                         
         Goptical::Analysis::Spot spot(*eye.sys);  
 
-        double radius = 0.01; // in mm.
-        while ( radius <= 1.0)
+        float eye_len, pup_s;
+        eye_len = eye.ReturnAxialLength();
+        pup_s = eye.ReturnPupilSize();
+        double radius = 0.0005; // in mm.
+        while ( radius <= 0.2)
         {
             // use .get_ray_wavelen_set() to process spot for each wavelength? then wighted average?
             outputfile << spot.get_encircled_intensity( radius ) 
                 << "," << radius
                 << "," << _diop 
-                << "," << eye.ReturnPupilSize() 
+                << "," << pup_s
                 << "," << off_axis 
                 << "," << age 
                 << "," << object_distance 
                 << "," << model 
+                << "," << eye_len
                 << "," << iter << std::endl;
             
-            radius += 0.01;
+            radius += 0.0005;
         }
         // increment the chosen variable.
         if (param == "age") { age += 2; }
@@ -72,7 +77,6 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
         if (param == "focus") { _diop += 2; }
         if (param == "angle") { off_axis += 5; }
         if (param == "distance") { object_distance = pow(10, 4 - i); }
-    
     }
 
 }
