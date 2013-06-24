@@ -1,4 +1,5 @@
 //#include "eye_eye.hh"
+#include <armadillo>
 #include "eye_analysis.hh" 
 
 namespace SchematicEye {
@@ -302,11 +303,41 @@ void Analysis::SpotPlot(int option=1, float object_distance=100000,
     }
 }
 
-/*
-void Analysis::SimplePlot(float object_distance, float off_axis,
-            std::string model)
+arma::vec Analysis::PSF(arma::vec intensity, arma::vec xvals, bool symmetric=false)
 {
-    EyePlots(1, object_distance, off_axis, model); 
+    float samples;
+    samples = intensity.n_elem;
+    arma::vec psf = arma::zeros<arma::vec>(samples);
+    arma::vec psftotal = arma::zeros<arma::vec>(samples * 2);
+
+    // we have an integral, therefore take the deriv to get rays / bin
+    arma::vec deriv = arma::zeros<arma::vec>(samples);
+
+    deriv(0) = intensity(0);
+    deriv.rows(1, samples) = intensity.rows(1, samples) - intensity.rows(0, samples - 1);
+
+    float radius0, radius1, area;
+    for (int i = 0; i < samples - 1; i++)
+    {
+        // account for increasing size of area
+        radius0 = xvals(i);
+        radius1 = xvals(i + 1);
+        
+        // subtract inner and outer circle area to get sliver of interest
+        area = (PI * pow(radius1, 2)) - (PI * pow(radius0, 2));
+
+        // deriv = amount in each circle; then divide by area
+        psf(i) = deriv(i) / area;
+    } 
+
+    // normalize so that PSF has integral of 1.
+    psf = psf / arma::sum(psf);
+
+    //psftotal.rows(1, samples + 1) = psf.fliplr();
+    //psftotal.rows(samples) = psf.rows(1, samples - 1);
+
+    if (symmetric) { return psftotal; }
+    else { return psf; }
 }
-*/
+
 }

@@ -7,15 +7,14 @@
 #include <Goptical/Analysis/Spot>
 #include <Goptical/Analysis/Focus>
 
-#include <Goptical/Math/Vector>
 #include <Goptical/Trace/Result>
 #include <Goptical/Trace/Ray>
 
-#include <Goptical/Sys/Surface>
-#include <Goptical/Sys/Image>
-
 #include <Goptical/Io/RendererSvg>
 #include <Goptical/Io/Rgb>
+
+#include <armadillo>
+#include <math.h>
 
 #include "eye_eye.hh"
 
@@ -29,7 +28,7 @@ namespace SchematicEye
 
         Goptical::Analysis::RayFan * fan;
 
-        void ReturnIntercepts(const Trace::Result &result, const Sys::Surface &s);
+        //void ReturnIntercepts(const Trace::Result &result, const Sys::Surface &s);
 
     public:
         
@@ -49,6 +48,7 @@ namespace SchematicEye
         void SpotPlot(int option, float object_distance, 
                     float off_axis, std::string model, float age,
                     float pupil_size, float diopters);
+        arma::vec PSF(arma::vec intensity, arma::vec xvals, bool symmetric);
 
         inline float _get_input(std::string message)
         {

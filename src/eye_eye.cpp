@@ -8,14 +8,13 @@
 
 /*
 1
-- MTF, PSF.
 - Move Eye eye = Eye() out of analysis functions into main or wrapper functions.
+- Add additional options: iterations, wavelength
 2
 - Add spectacle lens option - introduce chromatic analysis.
     + can define wavelengths in Goptical: add_spectral_line.
     + need to figure out how to create a lens with specific wavelength pass.
     + take mean of wavelengths during analysis.
-- Create ReturnEyeLength() method.
 3
 - double check navarro: refractive indices need updating.
 - create a comprehensive analysis option - schematic, abberations, psf, etc.

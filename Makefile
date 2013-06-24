@@ -1,7 +1,7 @@
 
 CXX=g++
 
-LIB_FLAGS = -l Goptical $(EXTRA_LIB_FLAGS)
+LIB_FLAGS = -lGoptical -larmadillo $(EXTRA_LIB_FLAGS)
 
 OPT = -O2
 
@@ -18,6 +18,13 @@ all: $(GENERATED_FILES)
 
 eye: $(EYEFILES)
 	$(CXX) $(CXXFLAGS)  -o $@ $^ $(LIB_FLAGS)
+
+install: $(GENERATED_FILES)
+	sudo rm /usr/local/bin/$(GENERATED_FILES)
+	sudo cp eye /usr/local/bin/$(GENERATED_FILES)
+
+cython: 
+	cython --cplus -2 src/cython/eye.pyx
 
 plots: src/EyePlots.py
 	./src/EyePlots.py -m $(args)

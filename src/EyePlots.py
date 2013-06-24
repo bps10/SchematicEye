@@ -41,11 +41,11 @@ class EyePlot():
                                         self._meta['samples']))
 
         self._meta['lens_accom'] = np.zeros(self._meta['iterations'])
-        self._meta['pupil_size_mm'] = np.zeros(self._meta['iterations'])
-        self._meta['off_axis_d'] = np.zeros(self._meta['iterations'])
+        self._meta['pupil_size_%'] = np.zeros(self._meta['iterations'])
+        self._meta['off_axis_*'] = np.zeros(self._meta['iterations'])
         self._meta['object_distance'] = np.zeros(self._meta['iterations'])
-        self._meta['age_y'] = np.zeros(self._meta['iterations'])
-        self._meta['eye_length_mm'] = np.zeros(self._meta['iterations'])
+        self._meta['age_&'] = np.zeros(self._meta['iterations'])
+        self._meta['eye_length_%'] = np.zeros(self._meta['iterations'])
 
         for i in range(0, self._meta['iterations']):
             ind1 = i * self._meta['samples']
@@ -56,18 +56,18 @@ class EyePlot():
                                  / np.max(self.Intensity['rawintensity'][i,:]))
 
             self._meta['lens_accom'][i] = dat['lens_focus_D'][ind1]
-            self._meta['pupil_size_mm'][i] = dat['pupil_size_mm'][ind1]
-            self._meta['off_axis_d'][i] = dat['offaxis_deg'][ind1]
+            self._meta['pupil_size_%'][i] = dat['pupil_size_mm'][ind1]
+            self._meta['off_axis_*'][i] = dat['offaxis_deg'][ind1]
             self._meta['object_distance'][i] = dat['obj_distance_mm'][ind1]
-            self._meta['age_y'][i] = dat['age_y'][ind1]
-            self._meta['eye_length_mm'][i] = dat['axial_len_mm'][ind1]
+            self._meta['age_&'][i] = dat['age_y'][ind1]
+            self._meta['eye_length_%'][i] = dat['axial_len_mm'][ind1]
 
         # set up parameters of the eye:
         self.xvals = np.zeros((1, self._meta['samples']))
         self.xvals = dat['radius_mm'][0: self._meta['samples']]
 
         self._meta['retImg'] = np.max(self.xvals) # size of image in mm 
-        radians = np.tan(self._meta['retImg'] / self._meta['eye_length_mm'][0])
+        radians = np.tan(self._meta['retImg'] / self._meta['eye_length_%'][0])
         self._meta['deg'] = rad2deg(radians)
         self._meta['mm/deg'] = self._meta['deg'] / self._meta['retImg']
 
@@ -167,14 +167,19 @@ class EyePlot():
         '''
         print ' '
         for key in self._meta.iterkeys():
-            if len(key) < 3:
-                print key, "\t\t\t\t||\t", self._meta[key]
-            elif len(key) < 7:
-                print key, "\t\t\t||\t", self._meta[key]
-            elif len(key) < 15:
-                print key, "\t\t||\t", self._meta[key]
+            out = (key.replace('_',' ')
+                .replace('%','(mm)')
+                .replace('&','(y)')
+                .replace('D', '(D)')
+                .replace('*', '$\\degree$'))
+            if len(out) < 3:
+                print out, "\t\t\t\t||\t", self._meta[key]
+            elif len(out) < 7:
+                print out, "\t\t\t||\t", self._meta[key]
+            elif len(out) < 15:
+                print out, "\t\t||\t", self._meta[key]
             else:
-                print key, " \t||\t", self._meta[key]
+                print out, " \t||\t", self._meta[key]
         print ' '
 
     def _findPlottingData(self, arg1, type1, arg2, 
@@ -241,10 +246,10 @@ class EyePlot():
                     label = '{0}'.format(self._meta[self.variable][i]))
 
         ax.legend().set_title(self.variable.replace('_',' ')
-            .replace('mm','(mm)')
-            .replace('y','(y)')
+            .replace('%','(mm)')
+            .replace('&','(y)')
             .replace('D', '(D)')
-            .replace('d', '$\\degree$'))
+            .replace('*', '$\\degree$'))
 
         if symmetric:
             plt.xlim([-2, 2])
@@ -282,8 +287,8 @@ class EyePlot():
         # plot diffraction limited case:
         diffract, _x = diffraction(self._meta['mm/deg'], 
                         self.Intensity['MTF'].shape[1], 
-                        self._meta['eye_length_mm'][0],
-                        self._meta['pupil_size_mm'][0])
+                        self._meta['eye_length_%'][0],
+                        self._meta['pupil_size_%'][0])
         if not density: 
             # currently conversion just a dummy var until I figure out correct
             # method of going from norm spat freq to cpd
@@ -292,10 +297,10 @@ class EyePlot():
             ax.semilogx(cpd, decibels(diffract), 'k')
 
         ax.legend().set_title(self.variable.replace('_', ' ')
-            .replace('mm', '(mm)')
-            .replace('y',' (y)')
+            .replace('%', '(mm)')
+            .replace('&',' (y)')
             .replace('D', '(D)')
-            .replace('d', '$\\degree$'))
+            .replace('*', '$\\degree$'))
 
         plt.ylim([0, 1.0])
         plt.xlim([0, 60.0])

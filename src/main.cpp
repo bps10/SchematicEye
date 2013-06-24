@@ -15,10 +15,10 @@ void _parse_args(int argc, const char * argv[], int * option,
         // transform to lower case if not already
         std::transform(word.begin(), word.end(), word.begin(), ::tolower);
 
-        if (word == "--plot") { *option = 0; }
-        if (word == "--lsa") { *option = 1; } 
-        if (word == "--series") { *option = 2; }  
-        if (word == "--spot") { *option = 3; }   
+        if (word == "plot") { *option = 0; }
+        if (word == "lsa") { *option = 1; } 
+        if (word == "series") { *option = 2; }  
+        if (word == "spot") { *option = 3; }   
 
         if (word.substr(0, 4) == "-age") 
             { *age = ::atof(word.substr(5).c_str()); }
@@ -57,7 +57,7 @@ int main(int argc, const char * argv[])
 {
     // set defaults:
     int * option = new int (0);
-    float * object_distance = new float (100000);
+    float * object_distance = new float (1000000);
     float * offaxis = new float (0);
     float * age = new float (20);
     float * pupil = new float (3);
@@ -73,10 +73,10 @@ int main(int argc, const char * argv[])
         std::cout << " " << std::endl;
         std::cout << "Schematic Eye - options:" << std::endl;
         std::cout << "============================================================" << std::endl;
-        std::cout << "--plot \t\t\t choose plot option" << std::endl;
-        std::cout << "--lsa \t\t\t choose LSA option, not working" << std::endl;
-        std::cout << "--series \t\t chose series option, add additional flags" << std::endl;
-        std::cout << "--spot \t\t\t choose a spot plot" << std::endl;
+        std::cout << "plot \t\t\t choose plot option" << std::endl;
+        std::cout << "lsa \t\t\t choose LSA option, not working" << std::endl;
+        std::cout << "series \t\t chose series option, add additional flags" << std::endl;
+        std::cout << "spot \t\t\t choose a spot plot" << std::endl;
         std::cout << " " << std::endl;
         std::cout << "-age=AGE \t\t set age parameter - Dubbelman only" << std::endl;
         std::cout << "-pupil=PUPIL \t\t set pupil width" << std::endl;
