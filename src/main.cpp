@@ -7,7 +7,8 @@
 
 void _parse_args(int argc, const char * argv[], int * option,
                 float * object_distance, float * offaxis, std::string * model,
-                float * age, float * pupil, float * diopters, std::string * param)
+                float * age, float * pupil, float * diopters, std::string * param,
+                int * iters)
 {    
     for (int i = 1; i < argc; i++) 
     {   
@@ -28,6 +29,8 @@ void _parse_args(int argc, const char * argv[], int * option,
             { *diopters = ::atof(word.substr(10).c_str()); }  
         if (word.substr(0, 6) == "-param")
             { *param = word.substr(7); }
+        if (word.substr(0, 6) == "-iters")
+            { *iters = ::atof(word.substr(7).c_str()); }
 
         if (word.substr(0, 9) == "-distance") 
             { *object_distance = ::atof(word.substr(10).c_str()); }
@@ -53,44 +56,54 @@ void _parse_args(int argc, const char * argv[], int * option,
     }
 }
 
+void _help()
+{
+    std::cout << " " << std::endl;
+    std::cout << "Schematic Eye" << std::endl;
+    std::cout << " " << std::endl;
+    std::cout << "options:" << std::endl;
+    std::cout << "============================================================" << std::endl;
+    std::cout << "plot \t\t\t choose plot option" << std::endl;
+    std::cout << "lsa \t\t\t choose LSA option, not working" << std::endl;
+    std::cout << "series \t\t\t chose series option, add additional flags" << std::endl;
+    std::cout << "spot \t\t\t choose a spot plot" << std::endl;
+    std::cout << " " << std::endl;
+    std::cout << "-iters=ITERS \t\t set number of iterations for a series plot" << std::endl;
+    std::cout << "-age=AGE \t\t set age parameter - Dubbelman only" << std::endl;
+    std::cout << "-pupil=PUPIL \t\t set pupil width" << std::endl;
+    std::cout << "-diopters=DIOPTERS \t set lens accommodation in diopters" << std::endl;
+    std::cout << "-param=PARAM \t\t choose a parameter to iterate - series only" << std::endl;
+    std::cout << "\t\t\t [age, pupil, angle, focus, distance]" << std::endl;
+    std::cout << "-distance=DISTANCE \t set object distance (mm)" << std::endl;
+    std::cout << "-offaxis=OFFAXIS \t set object offaxis in degrees" << std::endl;
+    std::cout << "-model=MODEL \t\t set model [dubbelman or navarro]" << std::endl;
+}
+
 int main(int argc, const char * argv[])
 {
     // set defaults:
     int * option = new int (0);
+    int * iters = new int (4);
     float * object_distance = new float (1000000);
     float * offaxis = new float (0);
     float * age = new float (20);
     float * pupil = new float (3);
     float * diopters = new float (0);
     std::string * param = new std::string ("angle");
-    std::string * model = new std::string ("dubbelman");
+    std::string * model = new std::string ("navarro");
 
     std::string word = "";
     if (argc == 2) { word = argv[1]; }
 
     if (word == "--help") 
     {
-        std::cout << " " << std::endl;
-        std::cout << "Schematic Eye - options:" << std::endl;
-        std::cout << "============================================================" << std::endl;
-        std::cout << "plot \t\t\t choose plot option" << std::endl;
-        std::cout << "lsa \t\t\t choose LSA option, not working" << std::endl;
-        std::cout << "series \t\t chose series option, add additional flags" << std::endl;
-        std::cout << "spot \t\t\t choose a spot plot" << std::endl;
-        std::cout << " " << std::endl;
-        std::cout << "-age=AGE \t\t set age parameter - Dubbelman only" << std::endl;
-        std::cout << "-pupil=PUPIL \t\t set pupil width" << std::endl;
-        std::cout << "-diopters=DIOPTERS \t set lens accommodation in diopters" << std::endl;
-        std::cout << "-param=PARAM \t\t choose a parameter to iterate - series only" << std::endl;
-        std::cout << "-distance=DISTANCE \t set object distance (mm)" << std::endl;
-        std::cout << "-offaxis=OFFAXIS \t set object offaxis in degrees" << std::endl;
-        std::cout << "-model=MODEL \t\t set model [dubbelman or navarro]" << std::endl;
+        _help();
         return 0;
     }
     else
     {
         _parse_args(argc, argv, option, object_distance, offaxis, model, 
-                age, pupil, diopters, param);
+                age, pupil, diopters, param, iters);
 
         SchematicEye::Analysis analysis;
 
@@ -110,9 +123,10 @@ int main(int argc, const char * argv[])
             analysis.IntensityAnalysis(*param, *object_distance, *offaxis, *model, 
                         *age, *pupil, *diopters, 4);
         }
+
         if (*option == 3)
         {
-            analysis.SpotPlot(1, *object_distance, *offaxis, *model, 
+            analysis.SpotPlot(*object_distance, *offaxis, *model, 
                         *age, *pupil, *diopters);
         }
 

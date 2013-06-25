@@ -1,5 +1,3 @@
-//#include "eye_eye.hh"
-#include <armadillo>
 #include "eye_analysis.hh" 
 
 namespace SchematicEye {
@@ -8,6 +6,40 @@ Analysis::Analysis() {};
 
 Analysis::~Analysis() {};
 
+
+float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis=5, 
+        float pupil_size=3, float diopters=0)
+{
+    std::string model="navarro";
+    std::string param="foo";
+    int _diop = diopters;
+
+    Eye eye = Eye();  
+    eye.set_params(_diop, pupil_size, model, 20);
+    eye.SchematicEye();
+    eye.EyeTracer(object_distance, off_axis);
+                
+    eye.sys->get_tracer_params().set_default_distribution(
+                                Trace::Distribution(Trace::HexaPolarDist, 250)); 
+                    
+    Goptical::Analysis::Spot spot(*eye.sys);  
+
+    double maxRadius = 0.2;
+    double radiusStep = 0.0005;
+    int len = (maxRadius / radiusStep) - 1;
+    float *outfile = new float [len];
+    int i(0);
+    double radius = 0.0005; // in mm.
+    while ( radius <= maxRadius)
+    {
+        // use .get_ray_wavelen_set() to process spot for each wavelength? 
+        // then wighted average?
+        outfile[i] = spot.get_encircled_intensity( radius );
+        i++;
+        radius += radiusStep;
+    }
+    return outfile;
+}
 
 void Analysis::IntensityAnalysis(std::string param, float object_distance=1000000, 
                     float off_axis=5, std::string model="dubbleman", 
@@ -58,7 +90,8 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
         double radius = 0.0005; // in mm.
         while ( radius <= 0.2)
         {
-            // use .get_ray_wavelen_set() to process spot for each wavelength? then wighted average?
+            // use .get_ray_wavelen_set() to process spot for each wavelength? 
+            // then wighted average?
             outputfile << spot.get_encircled_intensity( radius ) 
                 << "," << radius
                 << "," << _diop 
@@ -111,14 +144,6 @@ void Analysis::EyePlots(int best_focus = 1, float object_distance=100000,
             eye.sys->enable_single<Sys::Source>(*eye.source_rays);
             eye.tracer->get_trace_result().set_generated_save_state(*eye.source_rays);
             
-            /* use below to get out actual spot data - need to create new Result() */
-            //Trace::Result &result = eye.tracer->get_trace_result();
-            //std::cout << result.get_max_ray_intensity() << std::endl;
-            //std::cout << *eye.image << std::endl;
-            //Goptical::Sys::Image &s = *eye.image;
-            //std::cout << result.get_intercepted(s).get_intercept_point().project_xy() << std::endl;
-            //ReturnIntercepts(eye.tracer->get_trace_result(), s);
-
             renderer.set_page(0);
             eye.tracer->trace();
             eye.tracer->get_trace_result().draw_2d(renderer, true); //, eye.image);
@@ -208,7 +233,7 @@ void Analysis::LSAanalysis(float object_distance, float off_axis,
 }
 
 
-void Analysis::SpotPlot(int option=1, float object_distance=100000, 
+void Analysis::SpotPlot(float object_distance=100000, 
                     float off_axis=5, std::string model="dubbleman", 
                     float age=20, float pupil_size=3, float diopters=0)
 {
@@ -218,97 +243,80 @@ void Analysis::SpotPlot(int option=1, float object_distance=100000,
     //pupil_size = _get_input("pupil size (mm)");
     //age = _get_input("age (years)");
 
-    switch (option)
-    { 
-        case 1:
-        {
-            eye.set_params(diopters, pupil_size, model, age);
-            eye.SchematicEye();
-            eye.EyeTracer(object_distance, off_axis);
+    eye.set_params(diopters, pupil_size, model, age);
+    eye.SchematicEye();
+    eye.EyeTracer(object_distance, off_axis);
 
-            eye.sys->enable_single<Sys::Source>(*eye.source_point);
-            Goptical::Io::RendererSvg     renderer("img/spot.svg", 600,600, 
-                Io::rgb_black);
-            //renderer.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
-            
-            eye.sys->get_tracer_params().set_default_distribution(
-                                    Trace::Distribution(Trace::HexaPolarDist, 100)); 
-            //renderer.set_page_layout(1, 1);
+    eye.sys->enable_single<Sys::Source>(*eye.source_point);
+    Goptical::Io::RendererSvg     renderer("img/spot.svg", 600,600, 
+        Io::rgb_black);
+    //renderer.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
+    
+    eye.sys->get_tracer_params().set_default_distribution(
+                            Trace::Distribution(Trace::HexaPolarDist, 100)); 
+    //renderer.set_page_layout(1, 1);
 
-            Goptical::Analysis::Spot spot(*eye.sys);
-            
-            //renderer.set_page(0);
-            spot.draw_diagram(renderer);
+    Goptical::Analysis::Spot spot(*eye.sys);
+    
+    //renderer.set_page(0);
+    spot.draw_diagram(renderer);
 
-            break;
-        }
-        case 2:
-        {
-            Goptical::Io::RendererSvg renderer1("img/spot.svg", 300,1200, Io::rgb_black);
-            Goptical::Io::RendererSvg renderer2("img/spot_intensity.svg", 640, 480*4);
-            Goptical::Io::RendererSvg renderer3("img/spotBestFocus.svg", 300,1200, Io::rgb_black);
-            Goptical::Io::RendererSvg renderer4("img/spot_intensityBestFocus.svg", 640, 480*4);
-
-            renderer1.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
-            renderer2.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
-            renderer3.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
-            renderer4.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
-
-            renderer1.set_page_layout(1,4);
-            renderer2.set_page_layout(1,4);
-            renderer3.set_page_layout(1,4);
-            renderer4.set_page_layout(1,4);
-
-            int _diop = 0;
-            for (int i = 0; i < 4; i++)
-            {    
-                
-                eye.set_params(_diop, eye.pupil_size, eye.model, eye.age);
-                eye.SchematicEye();
-                eye.EyeTracer(object_distance, off_axis);
-                EyePlots(1);
-                
-                renderer1.set_page(i);
-                renderer2.set_page(i);
-                eye.sys->get_tracer_params().set_default_distribution(
-                                    Trace::Distribution(Trace::HexaPolarDist, 100)); 
-                
-                
-                Goptical::Analysis::Spot spot1(*eye.sys);
-                
-                spot1.draw_diagram(renderer1);    
-
-                ref<Data::Plot> plot1 = spot1.get_encircled_intensity_plot(100);
-
-                plot1->draw(renderer2);                
-
-                // now repeat measurements at point of best focus.
-                
-                renderer3.set_page(i);
-                renderer4.set_page(i);
-                
-                Goptical::Analysis::Spot spot2(*eye.sys);
-                Goptical::Analysis::Focus focus(*eye.sys);
-                eye.image->set_plane(focus.get_best_focus());
-
-                spot2.draw_diagram(renderer3);    
-
-                ref<Data::Plot> plot2 = spot2.get_encircled_intensity_plot(100);
-
-                plot2->draw(renderer4);                
-                _diop += 2;
-
-            }
-        }    
-    }
 }
+
+void Analysis::EyePlots(float object_distance=100000, float off_axis=5, 
+                    std::string model="navarro", float age=20, float pupil_size=3, 
+                    float diopters=0)
+{ 
+    Eye eye = Eye(); 
+    Goptical::Io::RendererSvg renderer("img/eye_analysis.svg", 300,1200, Io::rgb_black);
+
+    renderer.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
+    renderer.set_page_layout(1,4);
+
+    int _diop = 0;
+    for (int i = 0; i < 4; i++)
+    {    
+        
+        eye.set_params(_diop, eye.pupil_size, eye.model, eye.age);
+        eye.SchematicEye();
+        eye.EyeTracer(object_distance, off_axis);
+        
+        renderer.set_page(0);
+        eye.sys->get_tracer_params().set_default_distribution(
+                            Trace::Distribution(Trace::HexaPolarDist, 2550)); 
+        
+        
+        Goptical::Analysis::Spot spot(*eye.sys);
+        
+        spot.draw_diagram(renderer);    
+
+        ref<Data::Plot> plot = spot.get_encircled_intensity_plot(100);
+
+        plot->draw(renderer);                
+
+        renderer.set_page(1);
+        renderer.set_page(2);
+        
+        //Goptical::Analysis::Spot spot(*eye.sys);
+        Goptical::Analysis::Focus focus(*eye.sys);
+        eye.image->set_plane(focus.get_best_focus());
+
+        spot.draw_diagram(renderer);    
+
+        //ref<Data::Plot> plot = spot.get_encircled_intensity_plot(100);
+
+        renderer.set_page(3);
+        plot->draw(renderer);                
+    }    
+}
+
 
 arma::vec Analysis::PSF(arma::vec intensity, arma::vec xvals, bool symmetric=false)
 {
     float samples;
     samples = intensity.n_elem;
-    arma::vec psf = arma::zeros<arma::vec>(samples);
-    arma::vec psftotal = arma::zeros<arma::vec>(samples * 2);
+    arma::vec psf = arma::zeros<arma::vec>(1, samples);
+    arma::vec psftotal = arma::zeros<arma::vec>(1, samples * 2);
 
     // we have an integral, therefore take the deriv to get rays / bin
     arma::vec deriv = arma::zeros<arma::vec>(samples);
@@ -333,11 +341,24 @@ arma::vec Analysis::PSF(arma::vec intensity, arma::vec xvals, bool symmetric=fal
     // normalize so that PSF has integral of 1.
     psf = psf / arma::sum(psf);
 
-    //psftotal.rows(1, samples + 1) = psf.fliplr();
-    //psftotal.rows(samples) = psf.rows(1, samples - 1);
+    psftotal.rows(1, samples + 1) = arma::fliplr(psf);
+    psftotal.rows(0, samples) = psf.rows(1, samples - 1);
 
     if (symmetric) { return psftotal; }
     else { return psf; }
 }
 
+arma::vec Analysis::MTF(arma::vec psf)
+{
+    arma::vec temp;
+
+    arma::vec mtf = arma::zeros<arma::vec>(psf.n_elem);
+
+    temp = arma::abs(arma::fft(psf));
+    temp = arma::real(temp);
+
+    // normalize MTF
+    mtf = temp / psf.max();
+    return mtf;
+}
 }

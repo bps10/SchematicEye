@@ -13,12 +13,15 @@ import PlottingFun as pf
 # [ ] fix mtfs: DC component?, chromatic?
 # [ ] move PSF and MTF into analysis.cpp
 
+
 class EyePlot():
     '''
     '''
 
     def __init__(self):
 
+        self._meta = {}
+        self.Intensity = {}
         self._loadData()
     
     def _loadData(self, downsample=1.0):
@@ -28,13 +31,11 @@ class EyePlot():
             dtype="f8,f8,f8,f8,f8,f8,f8,S20,f8,f8",
             names=True, skip_header=0)
 
-        self._meta = {}
         self._meta['model'] = dat['model'][0]
         self._meta['iterations'] = 4 # dat['iterations'][0]
         self._meta['samples'] = int(dat.shape[0] / self._meta['iterations'])
 
         # Preallocate memory:
-        self.Intensity = {}
         self.Intensity['rawintensity'] = np.zeros((self._meta['iterations'],
                                         self._meta['samples'])) 
         self.Intensity['intensity'] = np.zeros((self._meta['iterations'], 
@@ -134,11 +135,6 @@ class EyePlot():
         self.Intensity['MTF'] = np.zeros((self._meta['iterations'], 
                                     np.floor(self._meta['samples'])))
         for i in range(0, self._meta['iterations']):
-
-            # find next power of 2 to make more efficient.
-            #pow2 = nextpow2(self._meta['samples'])
-            #t = np.zeros(pow2)
-            #t[:self._meta['samples']] = 
 
             temp = np.abs(np.fft.fftshift(np.fft.fft(
                                 self.Intensity['PSFtotal'][i, :])))[
@@ -287,12 +283,12 @@ class EyePlot():
         # plot diffraction limited case:
         diffract, _x = diffraction(self._meta['mm/deg'], 
                         self.Intensity['MTF'].shape[1], 
-                        self._meta['eye_length_%'][0],
-                        self._meta['pupil_size_%'][0])
+                        self._meta['pupil_size_%'][0],
+                        self._meta['eye_length_%'][0])
+
         if not density: 
-            # currently conversion just a dummy var until I figure out correct
-            # method of going from norm spat freq to cpd
-            ax.plot(_x * 200, diffract, 'k')
+            ax.plot(_x * (self._meta['samples'] / 2) / self._meta['deg'],
+                diffract, 'k')
         if density:
             ax.semilogx(cpd, decibels(diffract), 'k')
 
@@ -413,7 +409,7 @@ def NumericalAperature(n, theta=None, D=None, focal_len=None):
     if D is None and focal_len is None and theta is not None:
         out = n * np.sin(theta)
     elif theta is None and D is not None and focal_len is not None:
-        out = n * np.sin(np.arctan(D / 2 * focal_len))
+        out = n * np.sin(np.arctan(D / (2 * focal_len)))
     else:
         raise IOError("check parameters.")
 

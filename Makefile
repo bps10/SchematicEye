@@ -23,8 +23,8 @@ install: $(GENERATED_FILES)
 	sudo rm /usr/local/bin/$(GENERATED_FILES)
 	sudo cp eye /usr/local/bin/$(GENERATED_FILES)
 
-cython: 
-	cython --cplus -2 src/cython/eye.pyx
+cython: eye cython/setup.py
+	./cython/setup.py build_ext --inplace
 
 plots: src/EyePlots.py
 	./src/EyePlots.py -m $(args)

@@ -28,8 +28,6 @@ namespace SchematicEye
 
         Goptical::Analysis::RayFan * fan;
 
-        //void ReturnIntercepts(const Trace::Result &result, const Sys::Surface &s);
-
     public:
         
         Analysis();
@@ -39,16 +37,22 @@ namespace SchematicEye
 
         void LSAanalysis(float object_distance, float off_axis,
             std::string model);
+        void EyePlots(float object_distance, 
+                    float off_axis, std::string model, float age,
+                    float pupil_size, float diopters);
         void EyePlots(int best_focus, float object_distance, 
                     float off_axis, std::string model, float age,
+                    float pupil_size, float diopters);
+        float *IntensityAnalysis(float object_distance, float off_axis,
                     float pupil_size, float diopters);
         void IntensityAnalysis(std::string param, float object_distance, 
                     float off_axis, std::string model, float age,
                     float pupil_size, float diopters, int iter);
-        void SpotPlot(int option, float object_distance, 
+        void SpotPlot(float object_distance, 
                     float off_axis, std::string model, float age,
                     float pupil_size, float diopters);
         arma::vec PSF(arma::vec intensity, arma::vec xvals, bool symmetric);
+        arma::vec MTF(arma::vec psf);
 
         inline float _get_input(std::string message)
         {

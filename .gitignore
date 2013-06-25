@@ -2,3 +2,6 @@ old/
 eye
 *.csv
 *.svg
+build/
+img/
+*.so

@@ -8,8 +8,7 @@
 
 /*
 1
-- Move Eye eye = Eye() out of analysis functions into main or wrapper functions.
-- Add additional options: iterations, wavelength
+- Add additional options: # of iterations, wavelength
 2
 - Add spectacle lens option - introduce chromatic analysis.
     + can define wavelengths in Goptical: add_spectral_line.
@@ -24,39 +23,14 @@
 5
 - Off axis - change location of point source for marginal rays.
 - GUI.
+- add verbose option and single letter options (e.g. -h = help)
 */
 
 namespace SchematicEye {
 
 Eye::Eye() {}
 
-Eye::~Eye() 
-{
-/*
-    delete sys;
-    delete tracer;
-*/  
-    delete source_rays;
-    delete source_point; 
-    
-    delete anterior_cornea;
-    delete posterior_cornea;
-    delete pupil;
-    delete anterior_lens;
-    delete posterior_lens;
-    delete image;
-    
-    delete anterior_cornea_curve;
-    delete posterior_cornea_curve;
-    delete anterior_lens_curve;
-    delete posterior_lens_curve;
-    delete ant_cornea_shape;
-    delete post_cornea_shape;
-    delete lens_shape;
-    delete EyeShape;
-    delete EyeCurve;
-
-}
+Eye::~Eye() {}
 
 
 void Eye::set_params(std::string mod = "dubbelman")
