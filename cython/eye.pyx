@@ -50,7 +50,7 @@ cdef class ArrayWrapper:
         shape[0] = <np.npy_intp> self.size
         # Create a 1D array, of length 'size'
         ndarray = np.PyArray_SimpleNewFromData(1, shape,
-                                               np.NPY_INT, self.data_ptr)
+                                               np.NPY_FLOAT, self.data_ptr)
         return ndarray
  
     def __dealloc__(self):

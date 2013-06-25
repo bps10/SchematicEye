@@ -27,7 +27,7 @@ float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis
     double maxRadius = 0.2;
     double radiusStep = 0.0005;
     int len = (maxRadius / radiusStep) - 1;
-    float *outfile = new float [len];
+    float *outfile = new float[len];
     int i(0);
     double radius = 0.0005; // in mm.
     while ( radius <= maxRadius)
@@ -38,6 +38,7 @@ float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis
         i++;
         radius += radiusStep;
     }
+    //std::cout << outfile[10] << outfile[100] << std::endl;
     return outfile;
 }
 

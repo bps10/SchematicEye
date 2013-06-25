@@ -10,6 +10,7 @@
 1
 - Add additional options: # of iterations, wavelength
 2
+- Iterative solve for best diopter accommodation of lens.
 - Add spectacle lens option - introduce chromatic analysis.
     + can define wavelengths in Goptical: add_spectral_line.
     + need to figure out how to create a lens with specific wavelength pass.
@@ -19,10 +20,9 @@
 - create a comprehensive analysis option - schematic, abberations, psf, etc.
 4
 - Work out GRIN model.
-- Cython wrapper.
 5
 - Off axis - change location of point source for marginal rays.
-- GUI.
+- GUI - web based. Big issue is getting everything installed on AWS.
 - add verbose option and single letter options (e.g. -h = help)
 */
 

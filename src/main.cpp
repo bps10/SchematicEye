@@ -22,20 +22,20 @@ void _parse_args(int argc, const char * argv[], int * option,
         if (word == "spot") { *option = 3; }   
 
         if (word.substr(0, 4) == "-age") 
-            { *age = ::atof(word.substr(5).c_str()); }
+            { *age = atof(word.substr(5).c_str()); }
         if (word.substr(0, 6) == "-pupil") 
-            { *pupil = ::atof(word.substr(7).c_str()); }
+            { *pupil = atof(word.substr(7).c_str()); }
         if (word.substr(0, 9) == "-diopters") 
-            { *diopters = ::atof(word.substr(10).c_str()); }  
+            { *diopters = atof(word.substr(10).c_str()); }  
         if (word.substr(0, 6) == "-param")
             { *param = word.substr(7); }
         if (word.substr(0, 6) == "-iters")
-            { *iters = ::atof(word.substr(7).c_str()); }
+            { *iters = atof(word.substr(7).c_str()); }
 
         if (word.substr(0, 9) == "-distance") 
-            { *object_distance = ::atof(word.substr(10).c_str()); }
+            { *object_distance = atof(word.substr(10).c_str()); }
         if (word.substr(0, 8) == "-offaxis") 
-            { *offaxis = ::atof(word.substr(9).c_str()); }
+            { *offaxis = atof(word.substr(9).c_str()); }
 
         // and age option for loop.
         if (word.substr(0, 6) == "-model")
@@ -104,7 +104,7 @@ int main(int argc, const char * argv[])
     {
         _parse_args(argc, argv, option, object_distance, offaxis, model, 
                 age, pupil, diopters, param, iters);
-
+        
         SchematicEye::Analysis analysis;
 
         if (*option == 0)
