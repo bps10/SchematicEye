@@ -114,12 +114,12 @@ void Eye::SchematicEye()
     
     if (model == "navarro")
     { 
-        // refract indices from Navarro 1985 for lambda = 656.3nm
-        cornea_refract = ref<Material::AbbeVd>::create(1.37405, 56.50);
-        extraOcular_refract = ref<Material::AbbeVd>::create(1.3354, 49.61);
+        // refract indices from Navarro 1985 for lambda = 543nm
+        cornea_refract = ref<Material::AbbeVd>::create(1.3777, 56.50);
+        extraOcular_refract = ref<Material::AbbeVd>::create(1.3391, 49.61);
         lens_refract = ref<Material::AbbeVd>::create(lens_refractive_index,
                                                      48.00);
-        intraOcular_refract = ref<Material::AbbeVd>::create(1.3407, 50.90);
+        intraOcular_refract = ref<Material::AbbeVd>::create(1.3377, 50.90);
     
         cornea_ant_k = -0.26;            // Schwarzschild constant (k).
         cornea_post_k = 0;               // Schwarzschild constant (k).
@@ -270,8 +270,8 @@ void Eye::EyeTracer(float object_distance=10000, float offaxis=0)
 
     // add wavelengths of light
     source_point->clear_spectrum();
-    //source_point->add_spectral_line(Light::SpectralLine::e);
-    source_point->add_spectral_line(Light::SpectralLine::C);
+    source_point->add_spectral_line(Light::SpectralLine::e);
+    //source_point->add_spectral_line(Light::SpectralLine::C_);
     //source_point->add_spectral_line(Light::SpectralLine::F);
     
     // ray tracer
@@ -356,7 +356,7 @@ float Eye::GetVitreousLen(std::string model)
 { 
     float vitreous_length;
     if (model == "dubbelman")    {vitreous_length = 16.9935;}
-    if (model == "navarro")     {vitreous_length = 16.6;}
+    if (model == "navarro")     {vitreous_length = 16.320;}
     return vitreous_length;
 }
 
