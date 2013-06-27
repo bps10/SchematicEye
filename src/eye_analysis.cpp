@@ -20,7 +20,7 @@ float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis
     eye.EyeTracer(object_distance, off_axis);
                 
     eye.sys->get_tracer_params().set_default_distribution(
-                                Trace::Distribution(Trace::HexaPolarDist, 250)); 
+                                Trace::Distribution(Trace::HexaPolarDist, 100)); 
                     
     Goptical::Analysis::Spot spot(*eye.sys);  
 
@@ -81,7 +81,7 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
                     << "  best focus (diopter): " << eye.FindOpticalPower(1) << std::endl;
                     
         eye.sys->get_tracer_params().set_default_distribution(
-                                    Trace::Distribution(Trace::HexaPolarDist, 250)); 
+                                    Trace::Distribution(Trace::HexaPolarDist, 100)); 
                         
         Goptical::Analysis::Spot spot(*eye.sys);  
 

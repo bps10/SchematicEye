@@ -20,6 +20,7 @@
 - create a comprehensive analysis option - schematic, abberations, psf, etc.
 4
 - Work out GRIN model.
+- Allow sagittal and tang MTFs by specifiying geometry of ray tracer dist.
 5
 - Off axis - change location of point source for marginal rays.
 - GUI - web based. Big issue is getting everything installed on AWS.
