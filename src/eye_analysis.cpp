@@ -10,12 +10,12 @@ Analysis::~Analysis() {};
 float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis=5, 
         float pupil_size=3, float diopters=0)
 {
+    Eye eye = Eye(); 
     std::string model="navarro";
     std::string param="foo";
-    int _diop = diopters;
-
-    Eye eye = Eye();  
-    eye.set_params(_diop, pupil_size, model, 20);
+    float _diop = diopters;
+ 
+    eye.set_params(_diop, pupil_size, model, 20, false);
     eye.SchematicEye();
     eye.EyeTracer(object_distance, off_axis);
                 
@@ -46,7 +46,8 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
                     float off_axis=5, std::string model="dubbleman", 
                     float age=20, float pupil_size=3, float diopters=0, int iter=4)
 {
-    int _diop = diopters;
+    Eye eye = Eye(); 
+    float _diop = diopters;
     std::ofstream outputfile;
 
     // add ability to change name of Intensity
@@ -64,9 +65,8 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
                 << "iterations" << std::endl;
 
     for (int i = 0; i < iter; i++)
-    {    
-        Eye eye = Eye();  
-        eye.set_params(_diop, pupil_size, model, age);
+    {     
+        eye.set_params(_diop, pupil_size, model, age, false);
         eye.SchematicEye();
         eye.EyeTracer(object_distance, off_axis);
 
@@ -121,13 +121,12 @@ void Analysis::EyePlots(int best_focus = 1, float object_distance=100000,
                     float off_axis=5, std::string model="dubbleman", 
                     float age=20, float pupil_size=3, float diopters=0)
 {    
-
+    Eye eye = Eye(); 
     switch (best_focus) 
     {
         case 1:
         {
-            Eye eye = Eye(); 
-            eye.set_params(diopters, pupil_size, model, age);
+            eye.set_params(diopters, pupil_size, model, age, true);
             eye.SchematicEye();
             eye.EyeTracer(object_distance, off_axis);
 
@@ -164,13 +163,12 @@ void Analysis::EyePlots(int best_focus = 1, float object_distance=100000,
         }
         case 2:
         {
-            int _diop = 0;
+            float _diop = 0;
             Goptical::Io::RendererSvg renderer("img/eye.svg", 1200,800);
             renderer.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
             renderer.set_page_layout(1,4);
             for (int i = 0; i < 4; i++)
             {    
-                Eye eye = Eye(); 
                 eye.set_params(model);
                 eye.SchematicEye();
                 eye.EyeTracer(object_distance, off_axis);
@@ -214,7 +212,7 @@ void Analysis::LSAanalysis(float object_distance, float off_axis,
                 AGE = k;
                 
                 Eye eye = Eye(); 
-                eye.set_params( LensAccomm, PupilSize, model, AGE );
+                eye.set_params( LensAccomm, PupilSize, model, AGE, false);
                 eye.SchematicEye();
                 eye.EyeTracer(object_distance, off_axis);
                 
@@ -244,7 +242,7 @@ void Analysis::SpotPlot(float object_distance=100000,
     //pupil_size = _get_input("pupil size (mm)");
     //age = _get_input("age (years)");
 
-    eye.set_params(diopters, pupil_size, model, age);
+    eye.set_params(diopters, pupil_size, model, age, true);
     eye.SchematicEye();
     eye.EyeTracer(object_distance, off_axis);
 
@@ -274,11 +272,11 @@ void Analysis::EyePlots(float object_distance=100000, float off_axis=5,
     renderer.set_margin_ratio(0.1, 0.1, 0.1, 0.1);
     renderer.set_page_layout(1,4);
 
-    int _diop = 0;
+    float _diop = 0;
     for (int i = 0; i < 4; i++)
     {    
         
-        eye.set_params(_diop, eye.pupil_size, eye.model, eye.age);
+        eye.set_params(_diop, eye.pupil_size, eye.model, eye.age, true);
         eye.SchematicEye();
         eye.EyeTracer(object_distance, off_axis);
         

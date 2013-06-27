@@ -65,7 +65,7 @@ namespace SchematicEye {
         ~Eye();
 
         float diopters, pupil_size, age, init_diop;
-        int print;
+        bool print;
 
         std::string  model;
         
@@ -77,7 +77,8 @@ namespace SchematicEye {
         Sys::Image * image;
 
         void set_params(std::string mod);
-        void set_params(float diop, float pup, std::string mod, float a);
+        void set_params(float diop, float pup, std::string mod, float _age, 
+            bool _print);
         void SchematicEye( );
         void EyeTracer(float object_distance, float offaxis);
 

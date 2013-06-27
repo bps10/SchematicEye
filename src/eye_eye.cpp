@@ -51,15 +51,15 @@ void Eye::set_params(std::string mod = "dubbelman")
 }
 
 void Eye::set_params(float diop = 0.0, float pup = 5.0, 
-    std::string mod = "dubbelman", float a = 20.0)
+    std::string mod = "dubbelman", float _age = 20.0, bool _print=false)
 {
 
     diopters = diop;
     pupil_size = pup;
     init_diop = diopters;
-    age = a;
+    age = _age;
     model = mod;
-    print = 0.0;
+    print = _print;
     
 }
 
@@ -128,7 +128,7 @@ void Eye::SchematicEye()
         
         lens_ant_k = -3.1316 - ( 0.34 * log(diopters + 1.0) ); 
         lens_post_k = -1.0 - ( 0.125 * log(diopters + 1.0) );            
-        lens_ant_radius =   10.2 - ( 1.75 * log(diopters + 1.0) ); 
+        lens_ant_radius = 10.2 - ( 1.75 * log(diopters + 1.0) ); 
         lens_post_radius = -6.0 + ( 0.2294 * log(diopters + 1.0) ); 
     }
     
