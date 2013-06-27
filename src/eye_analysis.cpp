@@ -7,12 +7,11 @@ Analysis::Analysis() {};
 Analysis::~Analysis() {};
 
 
-float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis=5, 
-        float pupil_size=3, float diopters=0)
+float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis=0, 
+        float pupil_size=4, float diopters=0)
 {
     Eye eye = Eye(); 
     std::string model="navarro";
-    std::string param="foo";
     float _diop = diopters;
  
     eye.set_params(_diop, pupil_size, model, 20, false);
@@ -43,7 +42,7 @@ float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis
 }
 
 void Analysis::IntensityAnalysis(std::string param, float object_distance=1000000, 
-                    float off_axis=5, std::string model="dubbleman", 
+                    float off_axis=5, std::string model="navarro", 
                     float age=20, float pupil_size=3, float diopters=0, int iter=4)
 {
     Eye eye = Eye(); 
@@ -118,7 +117,7 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
 
 
 void Analysis::EyePlots(int best_focus = 1, float object_distance=100000, 
-                    float off_axis=5, std::string model="dubbleman", 
+                    float off_axis=5, std::string model="navarro", 
                     float age=20, float pupil_size=3, float diopters=0)
 {    
     Eye eye = Eye(); 

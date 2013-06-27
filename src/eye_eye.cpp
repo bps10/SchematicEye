@@ -369,7 +369,7 @@ float Eye::DegreesToMM(float object_distance, float degrees)
 {
     float radians;
     radians = degrees * PI / 180;
-    return abs(object_distance * tan(radians));
+    return abs(object_distance * tan(radians / 2));
 }
 
 float Eye::FindOpticalPower(int opt = 1)
