@@ -231,7 +231,7 @@ void Eye::SchematicEye()
     //**********************************************************************
     
     EyeCurve = new Curve::Sphere(-12.0); 
-    EyeShape = new Shape::Disk(10.0); // eye radius (mm)
+    EyeShape = new Shape::Disk(8.0); // eye radius (mm)
     
     image = new Sys::Image(Math::Vector3(0, 0, axial_length), 
         *EyeCurve, *EyeShape); 
@@ -270,10 +270,8 @@ void Eye::EyeTracer(float object_distance=10000, float offaxis=0)
 
     // add wavelengths of light
     source_point->clear_spectrum();
-    source_point->add_spectral_line(Light::SpectralLine::e);
-    //source_point->add_spectral_line(Light::SpectralLine::C_);
-    //source_point->add_spectral_line(Light::SpectralLine::F);
-    
+    source_point->add_spectral_line(Light::SpectralLine(543.0, 1.0));
+
     // ray tracer
     tracer = new Trace::Tracer(*sys);
     
@@ -285,7 +283,7 @@ float Eye::GetLensRefractiveIndex(std::string model, float age, float diopters)
     float lens_ref_ind;
     if (model == "dubbelman") 
     { 
-            lens_ref_ind = 1.441 - 0.00039 * age + 0.0013 * diopters; 
+        lens_ref_ind = 1.441 - 0.00039 * age + 0.0013 * diopters; 
     }
     if (model == "navarro") 
     { 
@@ -369,7 +367,7 @@ float Eye::DegreesToMM(float object_distance, float degrees)
 {
     float radians;
     radians = degrees * PI / 180;
-    return abs(object_distance * tan(radians / 2));
+    return abs(object_distance * tan(radians));
 }
 
 float Eye::FindOpticalPower(int opt = 1)
