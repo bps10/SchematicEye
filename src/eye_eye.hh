@@ -10,6 +10,7 @@
 
 #include <Goptical/Material/Abbe>
 #include <Goptical/Material/Base>
+#include <Goptical/Material/Navarro>
 
 #include <Goptical/Sys/System>
 #include <Goptical/Sys/OpticalSurface>
@@ -80,7 +81,7 @@ namespace SchematicEye {
         void set_params(float diop, float pup, std::string mod, float _age, 
             bool _print);
         void SchematicEye( );
-        void EyeTracer(float object_distance, float offaxis);
+        void EyeTracer(float object_distance, float offaxis, float wavelength);
 
         float GetCornealThickness(std::string model);
         float GetLensRefractiveIndex(std::string model, float age, float diopters);

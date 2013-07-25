@@ -81,7 +81,7 @@ void Eye::SchematicEye()
     cornea_radius_ant, cornea_radius_post, lens_ant_k, lens_post_k,
     lens_ant_radius, lens_post_radius, vitreous_length, lens_refractive_index;
     
-    ref<Material::AbbeVd> cornea_refract, extraOcular_refract,
+    ref<Material::Navarro> cornea_refract, extraOcular_refract,
     lens_refract, intraOcular_refract;
 
     corneal_thickness = GetCornealThickness(model);
@@ -94,10 +94,10 @@ void Eye::SchematicEye()
 
     if (model == "dubbelman") 
     {
-        cornea_refract = ref<Material::AbbeVd>::create(1.376, 56.50);
-        extraOcular_refract = ref<Material::AbbeVd>::create(1.336, 49.61);
-        lens_refract = ref<Material::AbbeVd>::create(lens_refractive_index, 48.00);
-        intraOcular_refract = ref<Material::AbbeVd>::create(1.336, 50.90);
+        //cornea_refract = ref<Material::AbbeVd>::create(1.376, 56.50);
+        //extraOcular_refract = ref<Material::AbbeVd>::create(1.336, 49.61);
+        //lens_refract = ref<Material::AbbeVd>::create(lens_refractive_index, 48.00);
+        //intraOcular_refract = ref<Material::AbbeVd>::create(1.336, 50.90);
 
         cornea_ant_k = 0.82;          // Schwarzschild constant (k).
         cornea_post_k = 0.66;         // Schwarzschild constant (k).
@@ -115,11 +115,16 @@ void Eye::SchematicEye()
     if (model == "navarro")
     { 
         // refract indices from Navarro 1985 for lambda = 543nm
-        cornea_refract = ref<Material::AbbeVd>::create(1.3777, 56.50);
-        extraOcular_refract = ref<Material::AbbeVd>::create(1.3391, 49.61);
-        lens_refract = ref<Material::AbbeVd>::create(lens_refractive_index,
-                                                     48.00);
-        intraOcular_refract = ref<Material::AbbeVd>::create(1.3377, 50.90);
+        //cornea_refract = ref<Material::AbbeVd>::create(1.3777, 56.50);
+        //extraOcular_refract = ref<Material::AbbeVd>::create(1.3391, 49.61);
+        //lens_refract = ref<Material::AbbeVd>::create(lens_refractive_index,
+        //                                             48.00);
+        //intraOcular_refract = ref<Material::AbbeVd>::create(1.3377, 50.90);
+
+        cornea_refract = ref<Material::Navarro>::create(1.3975, 1.3807, 1.37405, 1.3668);
+        extraOcular_refract = ref<Material::Navarro>::create(1.3593, 1.3422, 1.3354, 1.3278);
+        lens_refract = ref<Material::Navarro>::create(1.4492, 1.42625, 1.4175, 1.4097);
+        intraOcular_refract = ref<Material::Navarro>::create(1.3565, 1.3407, 1.3341, 1.3273);
     
         cornea_ant_k = -0.26;            // Schwarzschild constant (k).
         cornea_post_k = 0;               // Schwarzschild constant (k).
@@ -142,14 +147,14 @@ void Eye::SchematicEye()
         _simplePrint("lens thickness (mm): ", lens_thickness);
         _simplePrint("vitreous length (mm): ", vitreous_length);
         _simplePrint("axial length (mm): ", axial_length);
-
-        _simplePrint("cornea");
+        _simplePrint("  ");
+        _simplePrint("CORNEA");
         _simplePrint("anterior surface, k (mm): ", cornea_ant_k);
         _simplePrint("posterior surface, k (mm): ", cornea_post_k);
         _simplePrint("anterior radiuc, c (mm): ", cornea_radius_ant);
         _simplePrint("posterior radius, c (mm): " , cornea_radius_post);
-
-        _simplePrint("lens");
+        _simplePrint("  ");
+        _simplePrint("LENS");
         _simplePrint("anterior surface, k (mm): ", lens_ant_k);
         _simplePrint("posterior surface, k (mm): ", lens_post_k);
         _simplePrint("anterior radius, c (mm): ", lens_ant_radius);
@@ -242,7 +247,7 @@ void Eye::SchematicEye()
 }
 
 
-void Eye::EyeTracer(float object_distance=10000, float offaxis=0)
+void Eye::EyeTracer(float object_distance=10000, float offaxis=0, float wavelength=555.0)
 {
     //**********************************************************************
     // Setup light sources and ray tracer
@@ -270,7 +275,7 @@ void Eye::EyeTracer(float object_distance=10000, float offaxis=0)
 
     // add wavelengths of light
     source_point->clear_spectrum();
-    source_point->add_spectral_line(Light::SpectralLine(543.0, 1.0));
+    source_point->add_spectral_line(Light::SpectralLine(wavelength, 1.0));
 
     // ray tracer
     tracer = new Trace::Tracer(*sys);

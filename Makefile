@@ -1,4 +1,4 @@
-
+ 
 CXX=g++
 
 LIB_FLAGS = -lGoptical -larmadillo $(EXTRA_LIB_FLAGS)

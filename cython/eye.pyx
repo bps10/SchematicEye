@@ -4,7 +4,7 @@
 cdef extern from "../src/eye_analysis.hh" namespace "SchematicEye":
     cdef cppclass Analysis:
         Analysis()
-        float *IntensityAnalysis(float, float, float, float)
+        float *IntensityAnalysis(float, float, float, float, float)
 
 from libc.stdlib cimport free
 from cpython cimport PyObject, Py_INCREF
@@ -59,14 +59,14 @@ cdef class ArrayWrapper:
         free(<void*>self.data_ptr)
  
  
-def py_eye(float object_distance, float off_axis, float pupil_size, float diopters):
+def py_eye(float object_distance, float off_axis, float pupil_size, float diopters, float wavelength):
     """ Python binding of the 'compute' function in 'c_code.c' that does
         not copy the data allocated in C.
     """
     cdef float *array
     cdef np.ndarray ndarray
     # Call the C function
-    array = Analysis().IntensityAnalysis(object_distance, off_axis, pupil_size, diopters)
+    array = Analysis().IntensityAnalysis(object_distance, off_axis, pupil_size, diopters, wavelength)
  
     size = 399
     array_wrapper = ArrayWrapper()

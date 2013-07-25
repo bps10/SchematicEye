@@ -8,7 +8,7 @@
 void _parse_args(int argc, const char * argv[], int * option,
                 float * object_distance, float * offaxis, std::string * model,
                 float * age, float * pupil, float * diopters, std::string * param,
-                int * iters)
+                int * iters, float * wavelength)
 {    
     for (int i = 1; i < argc; i++) 
     {   
@@ -31,6 +31,8 @@ void _parse_args(int argc, const char * argv[], int * option,
             { *param = word.substr(7); }
         if (word.substr(0, 6) == "-iters")
             { *iters = atof(word.substr(7).c_str()); }
+        if (word.substr(0, 6) == "-wvlen")
+            { *wavelength = atof(word.substr(7).c_str()); }
 
         if (word.substr(0, 9) == "-distance") 
             { *object_distance = atof(word.substr(10).c_str()); }
@@ -77,6 +79,7 @@ void _help()
     std::cout << "-distance=DISTANCE \t set object distance (mm)" << std::endl;
     std::cout << "-offaxis=OFFAXIS \t set object offaxis in degrees" << std::endl;
     std::cout << "-model=MODEL \t\t set model [dubbelman or navarro]" << std::endl;
+    std::cout << "-wvlen=WVLEN \t\t set wavelength traced (nm)" << std::endl;
 }
 
 int main(int argc, const char * argv[])
@@ -89,13 +92,14 @@ int main(int argc, const char * argv[])
     float * age = new float (20);
     float * pupil = new float (3);
     float * diopters = new float (0);
+    float * wavelength = new float (555.0);
     std::string * param = new std::string ("angle");
     std::string * model = new std::string ("navarro");
 
     std::string word = "";
     if (argc == 2) { word = argv[1]; }
 
-    if (word == "--help") 
+    if (word == "--help" or word == "help" or word == "-h") 
     {
         _help();
         return 0;
@@ -103,14 +107,14 @@ int main(int argc, const char * argv[])
     else
     {
         _parse_args(argc, argv, option, object_distance, offaxis, model, 
-                age, pupil, diopters, param, iters);
+                age, pupil, diopters, param, iters, wavelength);
         
         SchematicEye::Analysis analysis;
-
+        
         if (*option == 0)
         {
             analysis.EyePlots(1, *object_distance, *offaxis, *model, 
-                        *age, *pupil, *diopters);
+                        *age, *pupil, *diopters, *wavelength);
         }
         
         if (*option == 1)
@@ -121,13 +125,13 @@ int main(int argc, const char * argv[])
         if (*option == 2)
         {
             analysis.IntensityAnalysis(*param, *object_distance, *offaxis, *model, 
-                        *age, *pupil, *diopters, 4);
+                        *age, *pupil, *diopters, *iters, *wavelength);
         }
 
         if (*option == 3)
         {
             analysis.SpotPlot(*object_distance, *offaxis, *model, 
-                        *age, *pupil, *diopters);
+                        *age, *pupil, *diopters, *wavelength);
         }
 
         return 0;

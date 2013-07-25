@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#! /usr/bin/env python
 from __future__ import division
 import numpy as np
 #import matplotlib
@@ -67,7 +67,7 @@ class EyePlot():
         self.xvals = dat['radius_mm'][0: self._meta['samples']]
 
         self._meta['retImg'] = np.max(self.xvals) # size of image in mm 
-        radians = 2 * np.arctan(self._meta['retImg'] / (2 * self._meta['eye_length_%'][0]))
+        radians = 2 * np.arctan(self._meta['retImg'] / (2 * 16.6))
         self._meta['deg'] = rad2deg(radians)
         self._meta['mm/deg'] = self._meta['retImg'] / self._meta['deg']
 
@@ -255,7 +255,7 @@ class EyePlot():
         diffract, _x = diffraction(self._meta['mm/deg'], 
                         self.Intensity['MTF'].shape[1], 
                         self._meta['pupil_size_%'][0],
-                        self._meta['eye_length_%'][0])
+                        16.6)#self._meta['eye_length_%'][0])
 
         if not density: 
             ax.plot(_x * (self._meta['samples'] / 2) / self._meta['deg'],

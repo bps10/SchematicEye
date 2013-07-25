@@ -8,7 +8,7 @@ Analysis::~Analysis() {};
 
 
 float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis=0, 
-        float pupil_size=4, float diopters=0)
+        float pupil_size=4, float diopters=0, float wavelength=555.0)
 {
     Eye eye = Eye(); 
     std::string model="navarro";
@@ -16,7 +16,7 @@ float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis
  
     eye.set_params(_diop, pupil_size, model, 20, false);
     eye.SchematicEye();
-    eye.EyeTracer(object_distance, off_axis);
+    eye.EyeTracer(object_distance, off_axis, wavelength);
                 
     eye.sys->get_tracer_params().set_default_distribution(
                                 Trace::Distribution(Trace::HexaPolarDist, 100)); 
@@ -43,7 +43,8 @@ float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis
 
 void Analysis::IntensityAnalysis(std::string param, float object_distance=1000000, 
                     float off_axis=5, std::string model="navarro", 
-                    float age=20, float pupil_size=3, float diopters=0, int iter=4)
+                    float age=20, float pupil_size=3, float diopters=0, int iter=4, 
+                    float wavelength=555.0)
 {
     Eye eye = Eye(); 
     float _diop = diopters;
@@ -67,7 +68,7 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
     {     
         eye.set_params(_diop, pupil_size, model, age, false);
         eye.SchematicEye();
-        eye.EyeTracer(object_distance, off_axis);
+        eye.EyeTracer(object_distance, off_axis, wavelength);
 
         std::cout << " " <<std::endl;
         std::cout << "lens (diopters): " << _diop << "  Age (years): " 
@@ -118,7 +119,8 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
 
 void Analysis::EyePlots(int best_focus = 1, float object_distance=100000, 
                     float off_axis=5, std::string model="navarro", 
-                    float age=20, float pupil_size=3, float diopters=0)
+                    float age=20, float pupil_size=3, float diopters=0, 
+                    float wavelength=555.0)
 {    
     Eye eye = Eye(); 
     switch (best_focus) 
@@ -127,7 +129,7 @@ void Analysis::EyePlots(int best_focus = 1, float object_distance=100000,
         {
             eye.set_params(diopters, pupil_size, model, age, true);
             eye.SchematicEye();
-            eye.EyeTracer(object_distance, off_axis);
+            eye.EyeTracer(object_distance, off_axis, wavelength);
 
             Goptical::Io::RendererSvg renderer("img/eye.svg", 1200,1200);
             renderer.set_margin_ratio(0.35, 0.25, 0.1, 0.1);
@@ -170,7 +172,7 @@ void Analysis::EyePlots(int best_focus = 1, float object_distance=100000,
             {    
                 eye.set_params(model);
                 eye.SchematicEye();
-                eye.EyeTracer(object_distance, off_axis);
+                eye.EyeTracer(object_distance, off_axis, wavelength);
                 //EyePlots();
                 
                 renderer.set_page(i);
@@ -213,7 +215,7 @@ void Analysis::LSAanalysis(float object_distance, float off_axis,
                 Eye eye = Eye(); 
                 eye.set_params( LensAccomm, PupilSize, model, AGE, false);
                 eye.SchematicEye();
-                eye.EyeTracer(object_distance, off_axis);
+                eye.EyeTracer(object_distance, off_axis, 555.0);
                 
                 AccommOptPower = eye.FindOpticalPower(1);
                 RelaxedOptPower = eye.FindOpticalPower(2);
@@ -233,7 +235,8 @@ void Analysis::LSAanalysis(float object_distance, float off_axis,
 
 void Analysis::SpotPlot(float object_distance=100000, 
                     float off_axis=5, std::string model="dubbleman", 
-                    float age=20, float pupil_size=3, float diopters=0)
+                    float age=20, float pupil_size=3, float diopters=0, 
+                    float wavelength=555.0)
 {
     Eye eye = Eye(); 
     //float diopters, pupil_size, age;
@@ -243,7 +246,7 @@ void Analysis::SpotPlot(float object_distance=100000,
 
     eye.set_params(diopters, pupil_size, model, age, true);
     eye.SchematicEye();
-    eye.EyeTracer(object_distance, off_axis);
+    eye.EyeTracer(object_distance, off_axis, wavelength);
 
     eye.sys->enable_single<Sys::Source>(*eye.source_point);
     Goptical::Io::RendererSvg     renderer("img/spot.svg", 600,600, 
@@ -263,7 +266,7 @@ void Analysis::SpotPlot(float object_distance=100000,
 
 void Analysis::EyePlots(float object_distance=100000, float off_axis=5, 
                     std::string model="navarro", float age=20, float pupil_size=3, 
-                    float diopters=0)
+                    float diopters=0, float wavelength=555.0)
 { 
     Eye eye = Eye(); 
     Goptical::Io::RendererSvg renderer("img/eye_analysis.svg", 300,1200, Io::rgb_black);
@@ -277,7 +280,7 @@ void Analysis::EyePlots(float object_distance=100000, float off_axis=5,
         
         eye.set_params(_diop, eye.pupil_size, eye.model, eye.age, true);
         eye.SchematicEye();
-        eye.EyeTracer(object_distance, off_axis);
+        eye.EyeTracer(object_distance, off_axis, wavelength);
         
         renderer.set_page(0);
         eye.sys->get_tracer_params().set_default_distribution(
