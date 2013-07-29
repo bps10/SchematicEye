@@ -21,23 +21,45 @@ void _parse_args(int argc, const char * argv[], int * option,
         if (word == "series") { *option = 2; }  
         if (word == "spot") { *option = 3; }   
 
-        if (word.substr(0, 4) == "-age") 
-            { *age = atof(word.substr(5).c_str()); }
-        if (word.substr(0, 6) == "-pupil") 
-            { *pupil = atof(word.substr(7).c_str()); }
-        if (word.substr(0, 9) == "-diopters") 
-            { *diopters = atof(word.substr(10).c_str()); }  
-        if (word.substr(0, 6) == "-param")
-            { *param = word.substr(7); }
-        if (word.substr(0, 6) == "-iters")
-            { *iters = atof(word.substr(7).c_str()); }
-        if (word.substr(0, 6) == "-wvlen")
-            { *wavelength = atof(word.substr(7).c_str()); }
+        if (word.substr(0, 5) == "--age")
+            { *age = atof(word.substr(6).c_str()); }
+        if  (word.substr(0, 2) == "-a")
+            { *age = atof(word.substr(3).c_str()); }
 
-        if (word.substr(0, 9) == "-distance") 
-            { *object_distance = atof(word.substr(10).c_str()); }
-        if (word.substr(0, 8) == "-offaxis") 
-            { *offaxis = atof(word.substr(9).c_str()); }
+        if (word.substr(0, 7) == "--pupil")
+            { *pupil = atof(word.substr(8).c_str()); }
+        if (word.substr(0, 2) == "-t")
+            { *pupil = atof(word.substr(3).c_str()); }
+
+        if (word.substr(0, 10) == "--diopters") 
+            { *diopters = atof(word.substr(11).c_str()); } 
+        if (word.substr(0,2) == "-d") 
+            { *diopters = atof(word.substr(3).c_str()); } 
+
+        if (word.substr(0, 7) == "--param")
+            { *param = word.substr(8); }
+        if (word.substr(0,2) == "-p")
+            { *param = word.substr(3); }
+
+        if (word.substr(0, 7) == "--iters")
+            { *iters = atof(word.substr(8).c_str()); }
+        if (word.substr(0,2) == "-i")
+            { *iters = atof(word.substr(3).c_str()); }
+
+        if (word.substr(0, 7) == "--wvlen")
+            { *wavelength = atof(word.substr(8).c_str()); }
+        if (word.substr(0,2) == "-w")
+            { *wavelength = atof(word.substr(3).c_str()); }
+
+        if (word.substr(0, 10) == "--distance") 
+            { *object_distance = atof(word.substr(11).c_str()); }
+        if (word.substr(0,2) == "-l")
+            { *object_distance = atof(word.substr(3).c_str()); }
+
+        if (word.substr(0, 9) == "--offaxis") 
+            { *offaxis = atof(word.substr(10).c_str()); }
+        if (word.substr(0,2) == "-o")
+            { *offaxis = atof(word.substr(3).c_str()); }
 
         // and age option for loop.
         if (word.substr(0, 6) == "-model")
@@ -70,16 +92,16 @@ void _help()
     std::cout << "series \t\t\t chose series option, add additional flags" << std::endl;
     std::cout << "spot \t\t\t choose a spot plot" << std::endl;
     std::cout << " " << std::endl;
-    std::cout << "-iters=ITERS \t\t set number of iterations for a series plot" << std::endl;
-    std::cout << "-age=AGE \t\t set age parameter - Dubbelman only" << std::endl;
-    std::cout << "-pupil=PUPIL \t\t set pupil width" << std::endl;
-    std::cout << "-diopters=DIOPTERS \t set lens accommodation in diopters" << std::endl;
-    std::cout << "-param=PARAM \t\t choose a parameter to iterate - series only" << std::endl;
-    std::cout << "\t\t\t [age, pupil, angle, focus, distance]" << std::endl;
-    std::cout << "-distance=DISTANCE \t set object distance (mm)" << std::endl;
-    std::cout << "-offaxis=OFFAXIS \t set object offaxis in degrees" << std::endl;
-    std::cout << "-model=MODEL \t\t set model [dubbelman or navarro]" << std::endl;
-    std::cout << "-wvlen=WVLEN \t\t set wavelength traced (nm)" << std::endl;
+    std::cout << "-i\t--iters=ITERS \t\t set number of iterations for a series plot" << std::endl;
+    std::cout << "-a\t--age=AGE \t\t set age parameter - Dubbelman only" << std::endl;
+    std::cout << "-t\t--pupil=PUPIL \t\t set pupil width" << std::endl;
+    std::cout << "-d\t--diopters=DIOPTERS \t set lens accommodation in diopters" << std::endl;
+    std::cout << "-l\t--distance=DISTANCE \t set object distance (mm)" << std::endl;
+    std::cout << "-o\t--offaxis=OFFAXIS \t set object offaxis in degrees" << std::endl;
+    std::cout << "-m\t--model=MODEL \t\t set model [dubbelman or navarro]" << std::endl;
+    std::cout << "-w\t--wvlen=WVLEN \t\t set wavelength traced (nm)" << std::endl;
+    std::cout << "-p\t--param=PARAM \t\t choose a parameter to iterate - series only" << std::endl;
+    std::cout << "\t\t\t [age, pupil, angle, focus, distance, wavelength]" << std::endl;
 }
 
 int main(int argc, const char * argv[])

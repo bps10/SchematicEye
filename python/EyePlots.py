@@ -1,14 +1,13 @@
 #! /usr/bin/env python
 from __future__ import division
 import numpy as np
-#import matplotlib
-#matplotlib.use('SVG')
 import matplotlib.pylab as plt
 import sys
 import argparse
 
 from base import plot as pf
-from base.optics import optics as o
+from base import optics as o
+from base import data as dm
 
 import eye as eye
 
@@ -68,10 +67,11 @@ class EyePlot():
         # set up parameters of the eye:
         self.xvals = dat['radius_mm'][0: self._meta['samples']]
 
-        self._meta['retImg'] = np.max(self.xvals) # size of image in mm 
-        radians = 2 * np.arctan(self._meta['retImg'] / (2 * 16.6))
-        self._meta['deg'] = o.rad2deg(radians)
-        self._meta['mm/deg'] = self._meta['retImg'] / self._meta['deg']
+        # retinal image, here is radius of image area
+        self._meta['retImg'] = np.max(self.xvals) # 1/2 size of image in mm 
+        radians = 2 * np.arctan(self._meta['retImg'] / (self._meta['eye_length_%'][0]))
+        self._meta['deg'] = dm.rad2deg(radians)
+        self._meta['mm/deg'] = self._meta['retImg'] * 2 / self._meta['deg']
 
         self._findDependentVar()
         self._printParams()
@@ -101,7 +101,7 @@ class EyePlot():
         for i in range(0, self._meta['iterations']):
 
             self.Intensity['PSF'][i, :], self.Intensity['PSFtotal'][i, :] = (
-                o.genPSF(self.Intensity['rawintensity'][i, :], self.xvals)
+                o.genPSF(self.Intensity['rawintensity'][i, :], self._meta['samples'])
             )
 
     def _genMTF(self):
@@ -254,7 +254,7 @@ class EyePlot():
                     label = '{0}'.format(self._meta[self.variable][i]))
 
         # plot diffraction limited case:
-        diffract, _x = o.diffraction(self._meta['mm/deg'], 
+        diffract, _x = o.diffraction(
                         self.Intensity['MTF'].shape[1], 
                         self._meta['pupil_size_%'][0],
                         16.6)
@@ -365,13 +365,21 @@ def plotComparisonMTF(save_plots=False, legend=False):
        
        **Fig 1:** A family of MTF curves from experimental data (dotted) 
        and schematic eye.        
-    """    
-    freqs = np.linspace(0, 289, 399)
+    """   
+    samples = 399
+    cycles = np.arange(0, samples) / 2
+    cpd = cycles / 0.1995 * 0.417492437017 
 
-    Fovea = o.MTF(freqs, 0)
-    TenDeg = o.MTF(freqs, 10)
-    TwentyDeg = o.MTF(freqs,20)
-    ThirtyDeg = o.MTF(freqs,30)
+    PAPER = True
+    if PAPER:
+        paper = 'Williams1996_clc' 
+    else:
+        paper = 'Navarro1993' 
+
+    Fovea = o.MTF(cpd, 0, paper)
+    TenDeg = o.MTF(cpd, 10, paper)
+    TwentyDeg = o.MTF(cpd,20, paper)
+    ThirtyDeg = o.MTF(cpd,30, paper)
     
     fig = plt.figure(figsize=(8,6))
     ax = fig.add_subplot(111)
@@ -380,41 +388,39 @@ def plotComparisonMTF(save_plots=False, legend=False):
     pf.TufteAxis(ax, ['left', 'bottom'], [5,5])
     
     #Navarro et al 1993 analytical func:
-    ax.plot(freqs, Fovea, 'm--')
-    ax.plot(freqs, TenDeg, 'r--')
-    ax.plot(freqs, TwentyDeg, 'g--')
-    ax.plot(freqs, ThirtyDeg, 'b--')
+    ax.plot(cpd, Fovea, 'm--')
+    ax.plot(cpd, TenDeg, 'r--')
+    ax.plot(cpd, TwentyDeg, 'g--')
+    #ax.plot(cpd, ThirtyDeg, 'b--')
     
-    #OSLO ray trace data:
-    intensity = traceEye(1e8, 0, 3, 0, 543)
-    psf = o.genPSF(intensity, freqs)[1]
-    mtf = o.genMTF(psf)
-    ax.plot(freqs, mtf, 'm-', label='fovea')
+    #Ray trace:
+    wavelength = 543 #632.8
+    pupil = 3
 
-    intensity = traceEye(1e8, 10, 3, 0, 543)
-    psf = o.genPSF(intensity, freqs)[1]
+    intensity = traceEye(1e8, 0, pupil, 0, wavelength)
+    psf = o.genPSF(intensity, samples)[1]
     mtf = o.genMTF(psf)
-    ax.plot(freqs, mtf, 'r-', label='10 deg')  
+    ax.plot(cpd, mtf, 'm-', label='fovea')
 
-    intensity = traceEye(1e8, 20, 3, 0, 543)
-    psf = o.genPSF(intensity, freqs)[1]
+    intensity = traceEye(1e8, 10, pupil, 0, wavelength)
+    psf = o.genPSF(intensity, samples)[1]
+    mtf = o.genMTF(psf)
+    ax.plot(cpd, mtf, 'r-', label='10 deg')  
+
+    intensity = traceEye(1e8, 20, pupil, 0, wavelength)
+    psf = o.genPSF(intensity, samples)[1]
     mtf = o.genMTF(psf)    
-    ax.plot(freqs, mtf, 'g-', label='20 deg')
-
-    intensity = traceEye(1e8, 30, 3, 0, 543)
-    psf = o.genPSF(intensity, freqs)[1]
+    ax.plot(cpd, mtf, 'g-', label='20 deg')
+    '''
+    intensity = traceEye(1e8, 30, pupil, 0, wavelength)
+    psf = o.genPSF(intensity, xvals)[1]
     mtf = o.genMTF(psf)
-    ax.plot(freqs, mtf, 'b-', label='30 deg')
-            
+    ax.plot(cpd, mtf, 'b-', label='30 deg')
+    '''     
     ax.legend(loc='upper right')#,title='object dist, retinal location')
-    
-    ax.get_xaxis().tick_bottom()
-    ax.get_yaxis().tick_left()
-    
-    mi, ma = plt.ylim()
-    
-    #plt.ylim([10**-2.5, 10**0])
-    plt.xlim([0, 60])
+
+    plt.ylim([0, 1.0])
+    plt.xlim([0, 60.0])
     
     plt.xlabel('spatial frequency (cycles / deg)')
     plt.ylabel('modulation transfer')

@@ -1,0 +1,16 @@
+
+1
+- Iterative solve for best diopter accommodation of lens.
+- Add spectacle lens option - introduce chromatic analysis.
+    + can define wavelengths in Goptical: add_spectral_line.
+    + need to figure out how to create a lens with specific wavelength pass.
+    + take mean of wavelengths during analysis.
+2
+- create a comprehensive analysis option - schematic, aberrations, psf, etc.
+3
+- Work out GRIN model.
+- Allow sagittal and tang MTFs by specifying geometry of ray tracer dist.
+4
+- Off axis - change location of point source for marginal rays.
+- GUI - web based. Big issue is getting everything installed on AWS.
+- add verbose option and single letter options (e.g. -h = help)

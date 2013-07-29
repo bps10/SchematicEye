@@ -6,27 +6,6 @@
 
 #include "eye_eye.hh"
 
-/*
-1
-- Add additional options: # of iterations, wavelength
-2
-- Iterative solve for best diopter accommodation of lens.
-- Add spectacle lens option - introduce chromatic analysis.
-    + can define wavelengths in Goptical: add_spectral_line.
-    + need to figure out how to create a lens with specific wavelength pass.
-    + take mean of wavelengths during analysis.
-3
-- double check navarro: refractive indices need updating.
-- create a comprehensive analysis option - schematic, abberations, psf, etc.
-4
-- Work out GRIN model.
-- Allow sagittal and tang MTFs by specifiying geometry of ray tracer dist.
-5
-- Off axis - change location of point source for marginal rays.
-- GUI - web based. Big issue is getting everything installed on AWS.
-- add verbose option and single letter options (e.g. -h = help)
-*/
-
 namespace SchematicEye {
 
 Eye::Eye() {}
@@ -114,13 +93,7 @@ void Eye::SchematicEye()
     
     if (model == "navarro")
     { 
-        // refract indices from Navarro 1985 for lambda = 543nm
-        //cornea_refract = ref<Material::AbbeVd>::create(1.3777, 56.50);
-        //extraOcular_refract = ref<Material::AbbeVd>::create(1.3391, 49.61);
-        //lens_refract = ref<Material::AbbeVd>::create(lens_refractive_index,
-        //                                             48.00);
-        //intraOcular_refract = ref<Material::AbbeVd>::create(1.3377, 50.90);
-
+        // refract indices from Navarro 1985:
         cornea_refract = ref<Material::Navarro>::create(1.3975, 1.3807, 1.37405, 1.3668);
         extraOcular_refract = ref<Material::Navarro>::create(1.3593, 1.3422, 1.3354, 1.3278);
         lens_refract = ref<Material::Navarro>::create(1.4492, 1.42625, 1.4175, 1.4097);
