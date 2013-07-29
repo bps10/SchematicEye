@@ -8,6 +8,7 @@ import sys
 import argparse
 
 from base import plot as pf
+from base.optics import optics as o
 
 import eye as eye
 
@@ -69,7 +70,7 @@ class EyePlot():
 
         self._meta['retImg'] = np.max(self.xvals) # size of image in mm 
         radians = 2 * np.arctan(self._meta['retImg'] / (2 * 16.6))
-        self._meta['deg'] = rad2deg(radians)
+        self._meta['deg'] = o.rad2deg(radians)
         self._meta['mm/deg'] = self._meta['retImg'] / self._meta['deg']
 
         self._findDependentVar()
@@ -100,7 +101,7 @@ class EyePlot():
         for i in range(0, self._meta['iterations']):
 
             self.Intensity['PSF'][i, :], self.Intensity['PSFtotal'][i, :] = (
-                genPSF(self.Intensity['rawintensity'][i, :], self.xvals)
+                o.genPSF(self.Intensity['rawintensity'][i, :], self.xvals)
             )
 
     def _genMTF(self):
@@ -113,7 +114,7 @@ class EyePlot():
                                         self._meta['samples'] ))
         for i in range(0, self._meta['iterations']):
             # normalize MTF
-            self.Intensity['MTF'][i, :] = genMTF(self.Intensity['PSFtotal'][i, :])
+            self.Intensity['MTF'][i, :] = o.genMTF(self.Intensity['PSFtotal'][i, :])
 
     def _findDependentVar(self):
         '''
@@ -253,7 +254,7 @@ class EyePlot():
                     label = '{0}'.format(self._meta[self.variable][i]))
 
         # plot diffraction limited case:
-        diffract, _x = diffraction(self._meta['mm/deg'], 
+        diffract, _x = o.diffraction(self._meta['mm/deg'], 
                         self.Intensity['MTF'].shape[1], 
                         self._meta['pupil_size_%'][0],
                         16.6)
@@ -364,15 +365,13 @@ def plotComparisonMTF(save_plots=False, legend=False):
        
        **Fig 1:** A family of MTF curves from experimental data (dotted) 
        and schematic eye.        
-    """
-    from base.optics.optics import MTF
-    
+    """    
     freqs = np.linspace(0, 289, 399)
 
-    Fovea = MTF(freqs, 0)
-    TenDeg = MTF(freqs, 10)
-    TwentyDeg = MTF(freqs,20)
-    FourtyDeg = MTF(freqs,40)
+    Fovea = o.MTF(freqs, 0)
+    TenDeg = o.MTF(freqs, 10)
+    TwentyDeg = o.MTF(freqs,20)
+    ThirtyDeg = o.MTF(freqs,30)
     
     fig = plt.figure(figsize=(8,6))
     ax = fig.add_subplot(111)
@@ -384,27 +383,28 @@ def plotComparisonMTF(save_plots=False, legend=False):
     ax.plot(freqs, Fovea, 'm--')
     ax.plot(freqs, TenDeg, 'r--')
     ax.plot(freqs, TwentyDeg, 'g--')
-    #ax.plot(freqs, FourtyDeg, 'b--')
+    ax.plot(freqs, ThirtyDeg, 'b--')
     
     #OSLO ray trace data:
-    intensity = traceEye(1e8, 0, 4, 0, 543)
-    psf = genPSF(intensity, freqs)[1]
-    mtf = genMTF(psf)
+    intensity = traceEye(1e8, 0, 3, 0, 543)
+    psf = o.genPSF(intensity, freqs)[1]
+    mtf = o.genMTF(psf)
     ax.plot(freqs, mtf, 'm-', label='fovea')
 
-    intensity = traceEye(1e8, 10, 4, 0, 543)
-    psf = genPSF(intensity, freqs)[1]
-    mtf = genMTF(psf)
+    intensity = traceEye(1e8, 10, 3, 0, 543)
+    psf = o.genPSF(intensity, freqs)[1]
+    mtf = o.genMTF(psf)
     ax.plot(freqs, mtf, 'r-', label='10 deg')  
 
-    intensity = traceEye(1e8, 20, 4, 0, 543)
-    psf = genPSF(intensity, freqs)[1]
-    mtf = genMTF(psf)    
+    intensity = traceEye(1e8, 20, 3, 0, 543)
+    psf = o.genPSF(intensity, freqs)[1]
+    mtf = o.genMTF(psf)    
     ax.plot(freqs, mtf, 'g-', label='20 deg')
 
-    #intensity = traceEye(1e8, 40, 4, 0, 632.8)
-    #mtf = genMTF(intensity)
-    #ax.plot(self.freqs, mtf, 'b-', label='40 deg')
+    intensity = traceEye(1e8, 30, 3, 0, 543)
+    psf = o.genPSF(intensity, freqs)[1]
+    mtf = o.genMTF(psf)
+    ax.plot(freqs, mtf, 'b-', label='30 deg')
             
     ax.legend(loc='upper right')#,title='object dist, retinal location')
     
@@ -437,139 +437,6 @@ def traceEye(object_distance=1e8, off_axis=0, pupil_size=3, diopters=0, waveleng
     return intensity
 
 
-def genPSF(intensity, xvals):
-    '''
-    '''
-    samples = len(xvals)
-    PSF = np.zeros(samples)
-    PSFtotal = np.zeros((samples * 2) + 1)
-
-    # we have an integral, therefore take the deriv to get rays / bin
-    deriv = np.zeros((samples))
-    deriv[0] = intensity[0]
-    deriv[1:] = intensity[1:] - intensity[0:-1]
-
-    for i in range(0, samples - 1):
-
-        # account for increasing size of area
-        radius0 = xvals[i]
-        radius1 = xvals[i + 1]
-
-        # subtract inner and outer circle area to get sliver of interest
-        area = (np.pi * radius1 ** 2.0) - (np.pi * radius0 ** 2.0)
-
-        # deriv = amount in each circle; then divide by area
-        PSF[i] = deriv[i]  / area 
-
-    # normalize so that each PSF has same integral of 1.
-
-    PSF = PSF / np.sum(PSF)
-
-    PSFtotal[1:samples + 1] = PSF[::-1]
-    PSFtotal[samples:-1] = PSF
-
-    return PSF, PSFtotal
-
-
-def genMTF(PSFtotal):
-    '''
-    '''
-    samples = len(PSFtotal)
-    MTF = np.zeros(samples / 2)
-
-    # make sure PSF is normalized
-    normPSF = PSFtotal / np.sum(PSFtotal)
-
-    # do the FFT, take only right half
-    temp = np.abs(np.fft.fftshift(np.fft.fft(normPSF)))
-    temp = temp[np.floor(samples / 2):-1]
-
-    # make sure we only get real part
-    MTF = np.real(temp)
-
-    return MTF
-
-
-def dlCutoffFreq(aperatureDiameter, focalplane, wavelength):
-    '''
-    '''
-    diam = aperatureDiameter / 1000.0
-    focalplane = focalplane / 1000.0
-    wl = wavelength * 1e-9
-    return diam / wl * focalplane
-
-
-def res_lim(pupil_size, wavelength):
-    '''
-    '''
-    wl = wavelength / 1000.0
-    return (pupil_size / wl) * (180.0 / np.pi)
-
-
-def diffraction(deg, samples, pupil_size_mm, focal_len, ref_index=1.336, wavelength=550.0):
-    '''See Appendix B of "Light, the Retinal Image and Photoreceptors"
-    Packer & Williams.
-
-    or
-
-    "Optics of the human eye" Atchison and Smith, pg 195.
-
-    '''
-    #NA = NumericalAperature(ref_index, D=pupil_size_mm, focal_len=focal_len)
-
-    s_0 = dlCutoffFreq(pupil_size_mm, focal_len, wavelength) #NA / lam # convert to radians
-    s =  np.linspace(0, s_0, samples)
-    #print "NA: ", NA, "s_0", s_0
-
-    dif = (2.0 / np.pi) * (np.arccos(s / s_0) - 
-            (s / s_0) * np.sqrt(1.0 - (s / s_0) ** 2.0))
-
-    return dif, s
-
-def NumericalAperature(n, theta=None, D=None, focal_len=None):
-    '''
-    Find the numerical aperature of a system
-
-    :param n: refractive index
-    :param theta: angle of marginal rays
-
-    According to the formula
-
-    $$NA = n \\sin(\\theta)$$
-
-    or 
-
-    $$NA = n \\sin(\\arctan(\\frac{D}{2f}))$$
-       
-    '''
-    if D is None and focal_len is None and theta is not None:
-        out = n * np.sin(theta)
-    elif theta is None and D is not None and focal_len is not None:
-        out = n * np.sin(np.arctan(D / (2 * focal_len)))
-    else:
-        raise IOError("check parameters.")
-
-    return out
-
-def nextpow2(n):
-    '''
-    '''
-    m_f = np.log2(n)
-    m_i = np.ceil(m_f)
-
-    return 2 ** m_i
-
-
-def rad2deg(radians):
-    '''Convert radians to degrees.
-    '''
-    return radians * 180.0 / np.pi
-
-
-def decibels(x):
-    '''
-    '''
-    return 10.0 * np.log10(x)
 
 
 if __name__ == "__main__":
