@@ -23,13 +23,14 @@ install: $(GENERATED_FILES)
 	sudo rm /usr/local/bin/$(GENERATED_FILES)
 	sudo cp eye /usr/local/bin/$(GENERATED_FILES)
 
-python: eye cython/setup.py
-	./cython/setup.py build_ext --inplace
+python: eye python/setup.py
+	./python/setup.py build_ext --inplace
+	cp eye.so python/eye.so
 
-plots: src/EyePlots.py
-	./src/EyePlots.py -m $(args)
+plots: python/EyePlots.py
+	./python/EyePlots.py -m $(args)
 
-.PHONY: clean
+.PHONY: clean plots
 
 clean:
 	rm -f eye

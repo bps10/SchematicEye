@@ -7,10 +7,11 @@ import matplotlib.pylab as plt
 import sys
 import argparse
 
-import PlottingFun as pf
+from base import plot as pf
 
+import eye as eye
 
-# [ ] fix mtfs: DC component?, chromatic?
+# [ ] mtfs: chromatic?
 # [ ] move PSF and MTF into analysis.cpp
 
 
@@ -109,7 +110,7 @@ class EyePlot():
             self._genPSF()
 
         self.Intensity['MTF'] = np.zeros((self._meta['iterations'], 
-                                        self._meta['samples'] + 1))
+                                        self._meta['samples'] ))
         for i in range(0, self._meta['iterations']):
             # normalize MTF
             self.Intensity['MTF'][i, :] = genMTF(self.Intensity['PSFtotal'][i, :])
@@ -255,11 +256,10 @@ class EyePlot():
         diffract, _x = diffraction(self._meta['mm/deg'], 
                         self.Intensity['MTF'].shape[1], 
                         self._meta['pupil_size_%'][0],
-                        16.6)#self._meta['eye_length_%'][0])
+                        16.6)
 
         if not density: 
-            ax.plot(_x * (self._meta['samples'] / 2) / self._meta['deg'],
-                diffract, 'k')
+            ax.plot(_x, diffract, 'k')
         if density:
             ax.semilogx(cpd, decibels(diffract), 'k')
 
@@ -343,9 +343,102 @@ class EyePlot():
         plt.tight_layout()
         plt.show()
 
+def plotComparisonMTF(save_plots=False, legend=False):
+    """
+    Plot peripheral MTF with a comparison to Navarro et al 1993 or 
+    Williams et al. 1996
+    
+    :param save_plots: decide whether to save plots (True) or not (False).
+    :type save_plots: bool
+    :param legend: turn legend on (True) or off (False). Default = True. \n
+    :type legend: bool
+    
+    Currently supports 0, 10, 20, 40 degrees eccentricity.
+    
+    **This produces:**
+    
+    .. figure:: ../../Figures/MTFperiphery.png
+       :height: 300px
+       :width: 400px
+       :align: center        
+       
+       **Fig 1:** A family of MTF curves from experimental data (dotted) 
+       and schematic eye.        
+    """
+    from base.optics.optics import MTF
+    
+    freqs = np.linspace(0, 289, 399)
+
+    Fovea = MTF(freqs, 0)
+    TenDeg = MTF(freqs, 10)
+    TwentyDeg = MTF(freqs,20)
+    FourtyDeg = MTF(freqs,40)
+    
+    fig = plt.figure(figsize=(8,6))
+    ax = fig.add_subplot(111)
+
+    pf.AxisFormat()
+    pf.TufteAxis(ax, ['left', 'bottom'], [5,5])
+    
+    #Navarro et al 1993 analytical func:
+    ax.plot(freqs, Fovea, 'm--')
+    ax.plot(freqs, TenDeg, 'r--')
+    ax.plot(freqs, TwentyDeg, 'g--')
+    #ax.plot(freqs, FourtyDeg, 'b--')
+    
+    #OSLO ray trace data:
+    intensity = traceEye(1e8, 0, 4, 0, 543)
+    psf = genPSF(intensity, freqs)[1]
+    mtf = genMTF(psf)
+    ax.plot(freqs, mtf, 'm-', label='fovea')
+
+    intensity = traceEye(1e8, 10, 4, 0, 543)
+    psf = genPSF(intensity, freqs)[1]
+    mtf = genMTF(psf)
+    ax.plot(freqs, mtf, 'r-', label='10 deg')  
+
+    intensity = traceEye(1e8, 20, 4, 0, 543)
+    psf = genPSF(intensity, freqs)[1]
+    mtf = genMTF(psf)    
+    ax.plot(freqs, mtf, 'g-', label='20 deg')
+
+    #intensity = traceEye(1e8, 40, 4, 0, 632.8)
+    #mtf = genMTF(intensity)
+    #ax.plot(self.freqs, mtf, 'b-', label='40 deg')
+            
+    ax.legend(loc='upper right')#,title='object dist, retinal location')
+    
+    ax.get_xaxis().tick_bottom()
+    ax.get_yaxis().tick_left()
+    
+    mi, ma = plt.ylim()
+    
+    #plt.ylim([10**-2.5, 10**0])
+    plt.xlim([0, 60])
+    
+    plt.xlabel('spatial frequency (cycles / deg)')
+    plt.ylabel('modulation transfer')
+    
+    plt.tight_layout()
+    
+    if save_plots:
+        fig.show()
+        fig.savefig(self.figPath + 'MTFperiphery.png')
+        plt.close()
+    else:
+        plt.show()
+
+
+def traceEye(object_distance=1e8, off_axis=0, pupil_size=3, diopters=0, wavelength=550):
+    '''
+    '''
+    intensity = eye.py_eye(object_distance, off_axis, pupil_size, diopters, wavelength)
+
+    return intensity
+
+
 def genPSF(intensity, xvals):
     '''
-
     '''
     samples = len(xvals)
     PSF = np.zeros(samples)
@@ -389,7 +482,7 @@ def genMTF(PSFtotal):
 
     # do the FFT, take only right half
     temp = np.abs(np.fft.fftshift(np.fft.fft(normPSF)))
-    temp = temp[np.floor(samples / 2):]
+    temp = temp[np.floor(samples / 2):-1]
 
     # make sure we only get real part
     MTF = np.real(temp)
@@ -397,17 +490,36 @@ def genMTF(PSFtotal):
     return MTF
 
 
+def dlCutoffFreq(aperatureDiameter, focalplane, wavelength):
+    '''
+    '''
+    diam = aperatureDiameter / 1000.0
+    focalplane = focalplane / 1000.0
+    wl = wavelength * 1e-9
+    return diam / wl * focalplane
+
+
+def res_lim(pupil_size, wavelength):
+    '''
+    '''
+    wl = wavelength / 1000.0
+    return (pupil_size / wl) * (180.0 / np.pi)
+
+
 def diffraction(deg, samples, pupil_size_mm, focal_len, ref_index=1.336, wavelength=550.0):
     '''See Appendix B of "Light, the Retinal Image and Photoreceptors"
     Packer & Williams.
 
-    '''
-    lam = wavelength / 1000 # convert mm into meters.
-    NA = NumericalAperature(ref_index, D=pupil_size_mm, focal_len=focal_len)
+    or
 
-    s_0 = NA / lam # convert to radians
+    "Optics of the human eye" Atchison and Smith, pg 195.
+
+    '''
+    #NA = NumericalAperature(ref_index, D=pupil_size_mm, focal_len=focal_len)
+
+    s_0 = dlCutoffFreq(pupil_size_mm, focal_len, wavelength) #NA / lam # convert to radians
     s =  np.linspace(0, s_0, samples)
-    print "NA: ", NA, "s_0", s_0
+    #print "NA: ", NA, "s_0", s_0
 
     dif = (2.0 / np.pi) * (np.arccos(s / s_0) - 
             (s / s_0) * np.sqrt(1.0 - (s / s_0) ** 2.0))
@@ -474,6 +586,9 @@ if __name__ == "__main__":
                         help="display PSF plot")
     parser.add_argument("-m", "--mtf", action="store_true", 
                          help="display MTF plot")
+    parser.add_argument("-c", "--comp", action="store_true", 
+                         help="display comparison plot")
+
     parser.add_argument("-v", "--verbose", action="store_true", 
                          help="display all plots")    
     args = parser.parse_args()
@@ -490,3 +605,5 @@ if __name__ == "__main__":
         out.PSFplot()
     if args.mtf or args.verbose:
         out.MTFplot()
+    if args.comp or args.verbose:
+        plotComparisonMTF()
