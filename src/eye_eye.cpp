@@ -69,7 +69,6 @@ void Eye::SchematicEye()
     vitreous_length = GetVitreousLen(model);
     axial_length = GetAxialLength(model, age, diopters);
     pupil_rad = pupil_size / 2.0;
-    lens_refractive_index = GetLensRefractiveIndex(model, age, diopters);
 
     if (model == "dubbelman") 
     {
@@ -96,7 +95,11 @@ void Eye::SchematicEye()
         // refract indices from Navarro 1985:
         cornea_refract = ref<Material::Navarro>::create(1.3975, 1.3807, 1.37405, 1.3668);
         extraOcular_refract = ref<Material::Navarro>::create(1.3593, 1.3422, 1.3354, 1.3278);
-        lens_refract = ref<Material::Navarro>::create(1.4492, 1.42625, 1.4175, 1.4097);
+        lens_refract = ref<Material::Navarro>::create(
+            GetLensRefractiveIndex(model, age, diopters, 1.4492), 
+            GetLensRefractiveIndex(model, age, diopters, 1.42625), 
+            GetLensRefractiveIndex(model, age, diopters, 1.4175), 
+            GetLensRefractiveIndex(model, age, diopters, 1.4097));
         intraOcular_refract = ref<Material::Navarro>::create(1.3565, 1.3407, 1.3341, 1.3273);
     
         cornea_ant_k = -0.26;            // Schwarzschild constant (k).
@@ -255,7 +258,7 @@ void Eye::EyeTracer(float object_distance=10000, float offaxis=0, float waveleng
     
 }
 
-float Eye::GetLensRefractiveIndex(std::string model, float age, float diopters)
+float Eye::GetLensRefractiveIndex(std::string model, float age, float diopters, float begin=1.42)
 {
 
     float lens_ref_ind;
@@ -312,7 +315,6 @@ float Eye::GetLensThickness(std::string model, float age, float diopters)
     return lens_thickness;
 }
 
-
 float Eye::GetAxialLength(std::string model, float age, float diopters)
 {    
     float a, b, c, d;
@@ -341,6 +343,22 @@ float Eye::ReturnPupilSize()
     return pupil_size;
 }
 
+float Eye::FindOpticalPower()
+{
+    Analysis::Focus        focus(*sys);
+    float power, focal_len, a, b, c;
+
+    a = GetCornealThickness(model);
+    b = GetAnteriorChamber(model, age, diopters);
+    c = GetLensThickness(model, age, diopters); 
+
+    focal_len = focus.get_best_focus()[0][2];
+    focal_len = focal_len - (a + b + c);
+    
+    power = 1.0 / (focal_len / 1000.0);
+    return power;
+}
+
 float Eye::DegreesToMM(float object_distance, float degrees)
 {
     float radians;
@@ -348,18 +366,7 @@ float Eye::DegreesToMM(float object_distance, float degrees)
     return abs(object_distance * tan(radians));
 }
 
-float Eye::FindOpticalPower(int opt = 1)
-{
-    Analysis::Focus        focus(*sys);
-    float power, focal_len;
-    if (opt == 1) { focal_len = focus.get_best_focus()[0][2]; }
-    if (opt == 2) { focal_len = GetAxialLength(model, age, diopters); }
-    
-    power = 1.0 / (focal_len / 1000.0);
-    return power;
-}
-
-
+/*
 float Eye::Diopters(bool print = true)
 {
     Analysis::Focus     focus(*sys);
@@ -381,8 +388,7 @@ float Eye::Diopters(bool print = true)
     if (print == false)
     {
     return defocus_diopter;
-    }
-    
-}
+    } 
+}*/
 
 }

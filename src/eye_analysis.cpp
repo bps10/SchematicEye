@@ -7,6 +7,7 @@ Analysis::Analysis() {};
 Analysis::~Analysis() {};
 
 
+
 float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis=0, 
         float pupil_size=4, float diopters=0, float wavelength=555.0)
 {
@@ -20,15 +21,15 @@ float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis
                 
     eye.sys->get_tracer_params().set_default_distribution(
                                 Trace::Distribution(Trace::HexaPolarDist, 150)); 
-                    
+    
     Goptical::Analysis::Spot spot(*eye.sys);  
 
     double maxRadius = 0.2;
-    double radiusStep = 0.00025;
+    double radiusStep = 0.0005;
     int len = (maxRadius / radiusStep) - 1;
     float *outfile = new float[len];
     int i(0);
-    double radius = 0.00025; // in mm.
+    double radius = 0.0005; // in mm.
     while ( radius <= maxRadius)
     {
         // use .get_ray_wavelen_set() to process spot for each wavelength? 
@@ -46,6 +47,7 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
                     float wavelength=555.0)
 {
     Eye eye = Eye(); 
+    float power;
     float _diop = diopters;
     std::ofstream outputfile;
 
@@ -61,13 +63,16 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
                 << "obj_distance_mm" << ","
                 << "model" << ","
                 << "axial_len_mm" << ","
-                << "iterations" << std::endl;
+                << "iterations" << ","
+                << "power" << std::endl;
 
     for (int i = 0; i < iter; i++)
     {     
         eye.set_params(_diop, pupil_size, model, age, false);
         eye.SchematicEye();
         eye.EyeTracer(object_distance, off_axis, wavelength);
+
+        power = eye.FindOpticalPower();
 
         std::cout << " " <<std::endl;
         std::cout << "lens (diopters): " << _diop << "  Age (years): " 
@@ -76,9 +81,12 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
         std::cout << "off axis (deg):" << off_axis
                     << "  obj dist (mm): " << object_distance << std::endl;
                     
-        std::cout << "unaccommodated defocus: " << eye.FindOpticalPower(2)
-                    << "  best focus (diopter): " << eye.FindOpticalPower(1) << std::endl;
-                    
+        //std::cout << "unaccommodated defocus: " << eye.FindOpticalPower(2)
+        //            << "  best focus (diopter): " << eye.FindOpticalPower(1) << std::endl;
+        
+        std::cout << "power: " << power << std::endl;
+
+
         eye.sys->get_tracer_params().set_default_distribution(
                                     Trace::Distribution(Trace::HexaPolarDist, 150)); 
                         
@@ -87,7 +95,7 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
         float eye_len, pup_s;
         eye_len = eye.ReturnAxialLength();
         pup_s = eye.ReturnPupilSize();
-        double radius = 0.00025; // in mm.
+        double radius = 0.0005; // in mm.
         while ( radius <= 0.2)
         {
             // use .get_ray_wavelen_set() to process spot for each wavelength? 
@@ -101,14 +109,15 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
                 << "," << object_distance 
                 << "," << model 
                 << "," << eye_len
-                << "," << iter << std::endl;
+                << "," << iter 
+                << "," << power << std::endl;
             
-            radius += 0.00025;
+            radius += 0.0005;
         }
         // increment the chosen variable.
         if (param == "age") { age += 2; }
         if (param == "pupil") { pupil_size++; }
-        if (param == "focus") { _diop += 2; }
+        if (param == "focus") { _diop += 1; }
         if (param == "angle") { off_axis += 5; }
         if (param == "distance") { object_distance = pow(10, 4 - i); }
         if (param == "wavelength") { wavelength += 10; }
@@ -159,7 +168,7 @@ void Analysis::EyePlots(int best_focus = 1, float object_distance=100000,
             renderer.set_page(1);
             abber_plot->draw(renderer);
 
-            eye.Diopters(true);
+            //eye.Diopters(true);
             break;
         }
         case 2:
@@ -217,13 +226,13 @@ void Analysis::LSAanalysis(float object_distance, float off_axis,
                 eye.SchematicEye();
                 eye.EyeTracer(object_distance, off_axis, 555.0);
                 
-                AccommOptPower = eye.FindOpticalPower(1);
-                RelaxedOptPower = eye.FindOpticalPower(2);
-                Defocus_diopters = eye.Diopters(true);
+                //AccommOptPower = eye.FindOpticalPower(1);
+                //RelaxedOptPower = eye.FindOpticalPower(2);
+                //Defocus_diopters = eye.Diopters(true);
                 
-                outputfile << LensAccomm << "," << PupilSize << "," << AGE << "," << 
-                            AccommOptPower << "," << RelaxedOptPower << "," << 
-                            Defocus_diopters << std::endl;
+                //outputfile << LensAccomm << "," << PupilSize << "," << AGE << "," << 
+                //            AccommOptPower << "," << RelaxedOptPower << "," << 
+                //            Defocus_diopters << std::endl;
 
             }
         }

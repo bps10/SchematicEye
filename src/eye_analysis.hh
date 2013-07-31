@@ -52,6 +52,8 @@ namespace SchematicEye
         void SpotPlot(float object_distance, 
                     float off_axis, std::string model, float age,
                     float pupil_size, float diopters, float wavelength);
+
+
         arma::vec PSF(arma::vec intensity, arma::vec xvals, bool symmetric);
         arma::vec MTF(arma::vec psf);
 

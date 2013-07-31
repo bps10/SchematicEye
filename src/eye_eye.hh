@@ -84,7 +84,7 @@ namespace SchematicEye {
         void EyeTracer(float object_distance, float offaxis, float wavelength);
 
         float GetCornealThickness(std::string model);
-        float GetLensRefractiveIndex(std::string model, float age, float diopters);
+        float GetLensRefractiveIndex(std::string model, float age, float diopters, float begin);
         float GetAnteriorChamber(std::string model, float age, float diopters);
         float GetLensThickness(std::string model, float age, float diopters);
         float GetAxialLength(std::string model, float age, float diopters);
@@ -92,8 +92,9 @@ namespace SchematicEye {
         float ReturnPupilSize();
         float ReturnAxialLength();
 
-        float FindOpticalPower(int opt);
-        float Diopters(bool print);
+        float FindOpticalPower();
+
+        //float Diopters(bool print);
 
         float DegreesToMM(float object_distance, float degrees);
 
