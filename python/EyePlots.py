@@ -128,8 +128,6 @@ class EyePlot():
                             self.variable = key
             except (IndexError, TypeError):
                 pass
-        if self.variable == None:
-            raise IOError("No dependent variable found")
 
     def _printParams(self):
         '''
@@ -200,25 +198,25 @@ class EyePlot():
         pf.TufteAxis(ax, ['left', 'bottom'], [5, 5], integer='on')
         size = self._meta['samples']
         if symmetric:
-            _x = np.linspace(-self._meta['retImg'], self._meta['retImg'],
+            _x = np.linspace(-self._meta['retImg'] / self._meta['mm/deg'], 
+                self._meta['retImg'] / self._meta['mm/deg'],
                 (self._meta['samples'] * 2) + 1)
 
         for i in range(0, self._meta['iterations']):
 
-            if symmetric:
-                ax.plot(_x / self._meta['mm/deg'] * 60,
+            if self.variable is not None:
+                ax.plot(_x * 60,
                     self.Intensity['PSFtotal'][i].T, 
                     label = '{0}'.format(self._meta[self.variable][i]))
             else:
-                ax.plot(self.xvals / self._meta['mm/deg'] * 60,
-                    self.Intensity['PSF'][i].T, 
-                    label = '{0}'.format(self._meta[self.variable][i]))
+                ax.plot(_x * 60, self.Intensity['PSFtotal'][i].T)
 
-        ax.legend().set_title(self.variable.replace('_',' ')
-            .replace('%','(mm)')
-            .replace('&','(y)')
-            .replace('D', '(D)')
-            .replace('*', '$\\degree$'))
+        if self.variable is not None:
+            ax.legend().set_title(self.variable.replace('_',' ')
+                .replace('%','(mm)')
+                .replace('&','(y)')
+                .replace('D', '(D)')
+                .replace('*', '$\\degree$'))
 
         if symmetric:
             plt.xlim([-3, 3])
@@ -244,14 +242,12 @@ class EyePlot():
 
         for i in range(0,self._meta['iterations']):
 
-            if not density:
+            if self.variable is not None:
                 ax.plot(cpd,
                     self.Intensity['MTF'][i, :].T,
                     label = '{0}'.format(self._meta[self.variable][i]))
-            if density:
-                ax.semilogx(cpd, 
-                    decibels(self.Intensity['MTF'][i, :].T),
-                    label = '{0}'.format(self._meta[self.variable][i]))
+            else:
+                ax.plot(cpd, self.Intensity['MTF'][i, :].T)
 
         # plot diffraction limited case:
         diffract, _x = o.diffraction(
@@ -264,11 +260,12 @@ class EyePlot():
         if density:
             ax.semilogx(cpd, decibels(diffract), 'k')
 
-        ax.legend().set_title(self.variable.replace('_', ' ')
-            .replace('%', '(mm)')
-            .replace('&',' (y)')
-            .replace('D', '(D)')
-            .replace('*', '$\\degree$'))
+        if self.variable is not None:
+            ax.legend().set_title(self.variable.replace('_',' ')
+                .replace('%','(mm)')
+                .replace('&','(y)')
+                .replace('D', '(D)')
+                .replace('*', '$\\degree$'))
 
         plt.ylim([0, 1.0])
         plt.xlim([0, 60.0])
@@ -370,7 +367,7 @@ def plotComparisonMTF(save_plots=False, legend=False):
     cycles = np.arange(0, samples) / 2
     cpd = cycles / 0.1995 * 0.417492437017 
 
-    PAPER = True
+    PAPER = False
     if PAPER:
         paper = 'Williams1996_clc' 
     else:
@@ -394,8 +391,8 @@ def plotComparisonMTF(save_plots=False, legend=False):
     #ax.plot(cpd, ThirtyDeg, 'b--')
     
     #Ray trace:
-    wavelength = 543 #632.8
-    pupil = 3
+    wavelength = 545 #632.8
+    pupil = 4
 
     intensity = traceEye(1e8, 0, pupil, 0, wavelength)
     psf = o.genPSF(intensity, samples)[1]

@@ -48,7 +48,7 @@ namespace SchematicEye
         void IntensityAnalysis(std::string param, float object_distance, 
                     float off_axis, std::string model, float age,
                     float pupil_size, float diopters, int iter,
-                    float wavelength);
+                    float wavelength, int points, float step);
         void SpotPlot(float object_distance, 
                     float off_axis, std::string model, float age,
                     float pupil_size, float diopters, float wavelength);

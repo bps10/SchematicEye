@@ -44,7 +44,7 @@ float *Analysis::IntensityAnalysis(float object_distance=1000000, float off_axis
 void Analysis::IntensityAnalysis(std::string param, float object_distance=1000000, 
                     float off_axis=5, std::string model="navarro", 
                     float age=20, float pupil_size=3, float diopters=0, int iter=4, 
-                    float wavelength=555.0)
+                    float wavelength=555.0, int points=155, float step=0.0005)
 {
     Eye eye = Eye(); 
     float power;
@@ -88,14 +88,14 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
 
 
         eye.sys->get_tracer_params().set_default_distribution(
-                                    Trace::Distribution(Trace::HexaPolarDist, 150)); 
+                                    Trace::Distribution(Trace::HexaPolarDist, points)); 
                         
         Goptical::Analysis::Spot spot(*eye.sys);  
 
         float eye_len, pup_s;
         eye_len = eye.ReturnAxialLength();
         pup_s = eye.ReturnPupilSize();
-        double radius = 0.0005; // in mm.
+        double radius = step; // in mm.
         while ( radius <= 0.2)
         {
             // use .get_ray_wavelen_set() to process spot for each wavelength? 
@@ -112,7 +112,7 @@ void Analysis::IntensityAnalysis(std::string param, float object_distance=100000
                 << "," << iter 
                 << "," << power << std::endl;
             
-            radius += 0.0005;
+            radius += step;
         }
         // increment the chosen variable.
         if (param == "age") { age += 2; }

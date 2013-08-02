@@ -8,7 +8,7 @@
 void _parse_args(int argc, const char * argv[], int * option,
                 float * object_distance, float * offaxis, std::string * model,
                 float * age, float * pupil, float * diopters, std::string * param,
-                int * iters, float * wavelength)
+                int * iters, float * wavelength, int * points, float * step)
 {    
     for (int i = 1; i < argc; i++) 
     {   
@@ -50,6 +50,16 @@ void _parse_args(int argc, const char * argv[], int * option,
             { *wavelength = atof(word.substr(8).c_str()); }
         if (word.substr(0,2) == "-w")
             { *wavelength = atof(word.substr(3).c_str()); }
+
+        if (word.substr(0, 7) == "--points") 
+            { *points = atof(word.substr(8).c_str()); }
+        if (word.substr(0,2) == "-r")
+            { *points = atof(word.substr(3).c_str()); }
+
+        if (word.substr(0, 6) == "--step") 
+            { *step = atof(word.substr(7).c_str()); }
+        if (word.substr(0,2) == "-s")
+            { *step = atof(word.substr(3).c_str()); }
 
         if (word.substr(0, 10) == "--distance") 
             { *object_distance = atof(word.substr(11).c_str()); }
@@ -100,6 +110,8 @@ void _help()
     std::cout << "-o\t--offaxis=OFFAXIS \t set object offaxis in degrees" << std::endl;
     std::cout << "-m\t--model=MODEL \t\t set model [dubbelman or navarro]" << std::endl;
     std::cout << "-w\t--wvlen=WVLEN \t\t set wavelength traced (nm)" << std::endl;
+    std::cout << "-r\t--points=POINTS \t\t set number of point sources" << std::endl;
+    std::cout << "-s\t--step=STEP \t\t set step size (radius)" << std::endl;
     std::cout << "-p\t--param=PARAM \t\t choose a parameter to iterate - series only" << std::endl;
     std::cout << "\t\t\t [age, pupil, angle, focus, distance, wavelength]" << std::endl;
 }
@@ -115,6 +127,9 @@ int main(int argc, const char * argv[])
     float * pupil = new float (3);
     float * diopters = new float (0);
     float * wavelength = new float (555.0);
+    int * points = new int (150);
+    float * step = new float (0.0005);
+
     std::string * param = new std::string ("angle");
     std::string * model = new std::string ("navarro");
 
@@ -129,7 +144,7 @@ int main(int argc, const char * argv[])
     else
     {
         _parse_args(argc, argv, option, object_distance, offaxis, model, 
-                age, pupil, diopters, param, iters, wavelength);
+                age, pupil, diopters, param, iters, wavelength, points, step);
         
         SchematicEye::Analysis analysis;
         
@@ -147,7 +162,7 @@ int main(int argc, const char * argv[])
         if (*option == 2)
         {
             analysis.IntensityAnalysis(*param, *object_distance, *offaxis, *model, 
-                        *age, *pupil, *diopters, *iters, *wavelength);
+                        *age, *pupil, *diopters, *iters, *wavelength, *points, *step);
         }
 
         if (*option == 3)
